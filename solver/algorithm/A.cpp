@@ -19,8 +19,6 @@ std::pair<Result, std::vector<Lit>> A::Solve() {
   std::vector<int> C(2 * n + 2, 0);
   std::vector<int> START(NumClauses() + 1, 0);
   std::vector<int> SIZE(NumClauses() + 1, 0);
-  // TODO: is ACTIVE actually needed?
-  std::vector<bool> ACTIVE(NumClauses() + 1, true);
 
   // 2 .. 2n+1
   // F[l] = forward, first cell that contains literal l
@@ -68,14 +66,24 @@ A1: // Initialize.
   int l;                 // chosen literal.
   bool makesClauseEmpty; // whether selecting l makes a clause empty.
 
+  auto LastLiteral = [&](int j) {
+    CHECK("clause index out of bounds", 1 <= j && j <= NumClauses());
+    return L[START[j] + SIZE[j] - 1];
+  };
+
 A2: // Choose.
-  CHECK("Depth must be 1 <= d <= n, so that we can turn it into a literal",
+  CHECK("depth must be 1 <= d <= n, so that we can turn it into a literal",
         1 <= d && d <= n);
   l = 2 * d;
   if (C[l] <= C[l + 1]) {
     ++l;
   }
   m[d] = (l & 1) + 4 * (C[l ^ 1] == 0);
+  // std::cout << "A2: choose l=" << ToString(Lit(l)) << " a=" << a << " m=";
+  // for (int j = 1; j <= d; ++j) {
+  //   std::cout << m[j];
+  // }
+  // std::cout << std::endl;
 
   if (C[l] == a) {
     std::vector<Lit> ret;
@@ -89,9 +97,9 @@ A2: // Choose.
 A3: // Remove ~l.
   makesClauseEmpty = false;
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    if (ACTIVE[C[p]] && SIZE[C[p]] == 1) {
-      CHECK("The only literal left is the one we want to remove",
-            L[START[C[p]]] == (l ^ 1));
+    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    int j = C[p];
+    if (LastLiteral(j) == (l ^ 1) && SIZE[j] == 1) {
       makesClauseEmpty = true;
       break;
     }
@@ -100,27 +108,26 @@ A3: // Remove ~l.
     goto A5;
   }
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("Every visited cell must be a non-special cell", p > 2 * n + 1);
-    if (ACTIVE[C[p]]) {
-      CHECK("Active clauses cannot be empty", SIZE[C[p]] > 0);
-      CHECK("The last literal must match the literal being removed",
-            L[START[C[p]] + SIZE[C[p]] - 1] == (l ^ 1));
-      --SIZE[C[p]];
-      CHECK("The resulting clause cannot be empty", SIZE[C[p]] > 0);
+    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    int j = C[p];
+    if (LastLiteral(j) == (l ^ 1)) {
+      // std::cout << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause "
+      // << j
+      //           << std::endl;
+      --SIZE[j];
+      CHECK("the resulting clause cannot be empty", SIZE[j] > 0);
     }
   }
 
 A4: // Deactivate l's clauses.
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
-    if (ACTIVE[C[p]]) {
-      CHECK("The chosen literal must be the last one in the clauses to be "
-            "deactivated",
-            L[START[C[p]] + SIZE[C[p]] - 1] == l);
-      ACTIVE[C[p]] = false;
-      for (int j = 0; j < SIZE[C[p]] - 1; ++j) {
-        CHECK("Updated counts cannot refer to the chosen literal",
-              L[START[C[p]] + j] != l);
-        --C[L[START[C[p]] + j]];
+    int j = C[p];
+    if (LastLiteral(j) == l) {
+      // std::cout << "A4: deactivate clause " << j << std::endl;
+      for (int i = 0; i < SIZE[j] - 1; ++i) {
+        CHECK("updated counts cannot refer to the chosen literal",
+              L[START[j] + i] != l);
+        --C[L[START[j] + i]];
       }
     }
   }
@@ -132,6 +139,7 @@ A5: // Try again.
   if (m[d] < 2) {
     m[d] = 3 - m[d];
     l = 2 * d + (m[d] & 1);
+    // std::cout << "A5: try again: l=" << ToString(Lit(l)) << '\n';
     goto A3;
   }
 
@@ -141,28 +149,33 @@ A6: // Backtrack.
   } else {
     --d;
     l = 2 * d + (m[d] & 1);
+    // std::cout << "A6: backtrack: l=" << ToString(Lit(l)) << '\n';
   }
 
 A7: // Reactivate l's clauses.
   a += C[l];
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
-    if (!ACTIVE[C[p]] && L[START[C[p]] + SIZE[C[p]] - 1] == l) {
-      ACTIVE[C[p]] = true;
-      for (int j = 0; j < SIZE[C[p]] - 1; ++j) {
-        CHECK("Updated counts cannot refer to the chosen literal",
-              L[START[C[p]] + j] != l);
-        ++C[L[START[C[p]] + j]];
+    int j = C[p];
+    if (LastLiteral(j) == l) {
+      // std::cout << "A7: reactivate clause " << j << std::endl;
+      for (int i = 0; i < SIZE[j] - 1; ++i) {
+        CHECK("updated counts cannot refer to the chosen literal",
+              L[START[j] + i] != l);
+        ++C[L[START[j] + i]];
       }
     }
   }
 
 A8: // Unremove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("Every visited cell must be a non-special cell", p > 2 * n + 1);
-    if (ACTIVE[C[p]]) {
-      ++SIZE[C[p]];
-      CHECK("The literal added back must match the literal being unremoved",
-            L[START[C[p]] + SIZE[C[p]] - 1] == (l ^ 1));
+    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    int j = C[p];
+    if (LastLiteral(j) > (l ^ 1)) {
+      // std::cout << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause "
+      //           << j << std::endl;
+      ++SIZE[j];
+      CHECK("last literal must match the unremoved literal",
+            LastLiteral(j) == (l ^ 1));
     }
   }
   goto A5;

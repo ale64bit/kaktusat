@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
   {
     std::cout << "Reading instance from dimacs file..." << std::endl;
     auto start = std::chrono::system_clock::now();
-    // solver::builder::R(*solver);
     auto err = solver::builder::FromDimacsFile(path, *solver);
     if (!err.empty()) {
       std::cout << "Reading instance: " << err << std::endl;
