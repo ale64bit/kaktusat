@@ -4,6 +4,7 @@
 #include "solver/builder/simple.h"
 
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -16,6 +17,11 @@ int main(int argc, char *argv[]) {
     std::cout << "usage: main <algorithm> <instance.cnf>" << std::endl;
     return 0;
   }
+
+#ifdef NDEBUG
+  std::ofstream devNull("/dev/null");
+  std::clog.rdbuf(devNull.rdbuf());
+#endif
 
   char solverID = argv[1][0];
   std::string path(argv[2]);

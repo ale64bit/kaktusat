@@ -12,6 +12,7 @@ public:
   A() {}
 
   std::pair<Result, std::vector<Lit>> Solve() override;
+  std::string ID() const override { return "A"; }
 };
 
 } // namespace algorithm

@@ -64,6 +64,7 @@ public:
   std::string ToString() const;
 
   virtual std::pair<Result, std::vector<Lit>> Solve() = 0;
+  virtual std::string ID() const = 0;
 
 protected:
   int n_;

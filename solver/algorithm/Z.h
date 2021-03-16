@@ -2,6 +2,7 @@
 
 #include "solver/solver.h"
 
+#include <string>
 #include <vector>
 
 namespace solver {
@@ -12,6 +13,7 @@ public:
   Z() {}
 
   std::pair<Result, std::vector<Lit>> Solve() override;
+  std::string ID() const override { return "Z"; }
 };
 
 } // namespace algorithm
