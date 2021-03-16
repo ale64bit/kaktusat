@@ -2,6 +2,7 @@
 #include "solver/algorithm/Z.h"
 #include "solver/builder/dimacs.h"
 #include "solver/builder/simple.h"
+#include "solver/builder/waerden.h"
 
 #include <chrono>
 #include <fstream>
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
   {
     std::cout << "Reading instance from dimacs file..." << std::endl;
     auto start = std::chrono::system_clock::now();
-    auto err = solver::builder::FromDimacsFile(path, *solver);
+    auto err = solver::builder::FromDimacsFile(*solver, path);
     if (!err.empty()) {
       std::cout << "Reading instance: " << err << std::endl;
       return 1;

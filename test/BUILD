@@ -2,9 +2,8 @@ cc_test(
     name = "simple",
     srcs = ["simple.cpp"],
     deps = [
-        "//solver/algorithm:A",
-        "//solver/algorithm:Z",
-        "//solver/builder:simple",
+        "//solver/algorithm",
+        "//solver/builder",
         "@gtest//:gtest_main",
     ],
 )

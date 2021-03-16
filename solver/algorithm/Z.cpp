@@ -6,6 +6,7 @@
 namespace solver {
 namespace algorithm {
 
+// The slowest solver in the west.
 std::pair<Result, std::vector<Lit>> Z::Solve() {
   std::vector<Lit> cur;
   cur.reserve(NumVars());

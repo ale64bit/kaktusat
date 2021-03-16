@@ -1,10 +1,14 @@
 #include "gtest/gtest.h"
 
 #include <memory>
+#include <vector>
 
 #include "solver/algorithm/A.h"
 #include "solver/algorithm/Z.h"
 #include "solver/builder/simple.h"
+#include "solver/builder/waerden.h"
+
+using BuildFn = std::function<void(solver::Solver &)>;
 
 std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   std::vector<std::unique_ptr<solver::Solver>> solvers;
@@ -13,20 +17,41 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   return solvers;
 }
 
+std::vector<BuildFn> AllSATBuilders() {
+  return {
+      [](solver::Solver &s) { solver::builder::Unit(s); },
+      [](solver::Solver &s) { solver::builder::Tautology(s); },
+      [](solver::Solver &s) { solver::builder::Rprime(s); },
+      [](solver::Solver &s) { solver::builder::waerden(s, 3, 3, 8); },
+  };
+}
+
+std::vector<BuildFn> AllUNSATBuilders() {
+  return {
+      [](solver::Solver &s) { solver::builder::Contradiction(s); },
+      [](solver::Solver &s) { solver::builder::R(s); },
+      [](solver::Solver &s) { solver::builder::waerden(s, 3, 3, 9); },
+  };
+}
+
 TEST(SimpleTest, SATTest) {
-  for (auto &solver : AllSolvers()) {
-    solver::builder::Rprime(*solver);
-    auto [res, sol] = solver->Solve();
-    EXPECT_EQ(res, solver::Result::kSAT);
-    EXPECT_TRUE(solver->Verify(sol));
+  for (auto builder : AllSATBuilders()) {
+    for (auto &solver : AllSolvers()) {
+      builder(*solver);
+      auto [res, sol] = solver->Solve();
+      EXPECT_EQ(res, solver::Result::kSAT);
+      EXPECT_TRUE(solver->Verify(sol));
+    }
   }
 }
 
 TEST(SimpleTest, UNSATTest) {
-  for (auto &solver : AllSolvers()) {
-    solver::builder::R(*solver);
-    auto [res, sol] = solver->Solve();
-    EXPECT_EQ(res, solver::Result::kUNSAT);
-    EXPECT_TRUE(sol.empty());
+  for (auto builder : AllUNSATBuilders()) {
+    for (auto &solver : AllSolvers()) {
+      builder(*solver);
+      auto [res, sol] = solver->Solve();
+      EXPECT_EQ(res, solver::Result::kUNSAT);
+      EXPECT_TRUE(sol.empty());
+    }
   }
 }

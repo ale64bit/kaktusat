@@ -48,6 +48,13 @@ std::string Solver::NameOf(Var x) const { return name_[x.ID() - 1]; }
 
 void Solver::AddClause(std::vector<Lit> c) { clauses_.emplace_back(c); }
 
+void Solver::Reset() {
+  n_ = 0;
+  name_.clear();
+  clauses_.clear();
+  nameToVar_.clear();
+}
+
 bool Solver::Verify(const std::vector<Lit> &solution,
                     std::string *errMsg) const {
   std::vector<bool> used(2 * n_ + 2, false);

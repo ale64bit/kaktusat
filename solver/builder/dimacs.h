@@ -7,7 +7,7 @@
 namespace solver {
 namespace builder {
 
-std::string FromDimacsFile(std::string, Solver &);
+std::string FromDimacsFile(Solver &, std::string);
 
 } // namespace builder
 } // namespace solver
