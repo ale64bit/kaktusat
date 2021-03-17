@@ -12,6 +12,7 @@ namespace builder {
  * In other words, it computes a binary sequence of length n such that there are
  * no j equally spaced 0s and no k equally spaced 1s.
  *
+ * @see: 7.2.2.2 - (10), p4
  * @see: https://en.wikipedia.org/wiki/Van_der_Waerden_number
  */
 void waerden(Solver &solver, int j, int k, int n) {

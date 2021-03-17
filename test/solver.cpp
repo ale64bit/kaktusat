@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "solver/algorithm/A.h"
+#include "solver/algorithm/A2.h"
 #include "solver/algorithm/Z.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
@@ -13,6 +14,7 @@ using BuildFn = std::function<void(solver::Solver &)>;
 std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   std::vector<std::unique_ptr<solver::Solver>> solvers;
   solvers.emplace_back(new solver::algorithm::A());
+  solvers.emplace_back(new solver::algorithm::A2());
   solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }
@@ -34,7 +36,7 @@ std::vector<BuildFn> AllUNSATBuilders() {
   };
 }
 
-TEST(SimpleTest, SATTest) {
+TEST(SolverTest, SATTest) {
   for (auto builder : AllSATBuilders()) {
     for (auto &solver : AllSolvers()) {
       builder(*solver);
@@ -45,7 +47,7 @@ TEST(SimpleTest, SATTest) {
   }
 }
 
-TEST(SimpleTest, UNSATTest) {
+TEST(SolverTest, UNSATTest) {
   for (auto builder : AllUNSATBuilders()) {
     for (auto &solver : AllSolvers()) {
       builder(*solver);

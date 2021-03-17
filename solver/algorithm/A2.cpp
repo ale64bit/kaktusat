@@ -1,4 +1,4 @@
-#include "solver/algorithm/A.h"
+#include "solver/algorithm/A2.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -11,27 +11,27 @@ namespace algorithm {
 
 /*
  * 7.2.2.2 - Algorithm A - p28
- * 7.2.2.2 - Exercise 121 - p143, p208
+ *
+ * This was my original implementation, which doesn't remove the literals from
+ * deactivated clauses but instead uses the order of literals inside clauses to
+ * maintain whether they are active or not.
  */
-std::pair<Result, std::vector<Lit>> A::Solve() {
+std::pair<Result, std::vector<Lit>> A2::Solve() {
   const int n = NumVars();
 
   std::vector<int> L(2 * n + 2, 0);
   std::vector<int> F(2 * n + 2, 0);
-  std::vector<int> B(2 * n + 2, 0);
   std::vector<int> C(2 * n + 2, 0);
   std::vector<int> START(NumClauses() + 1, 0);
   std::vector<int> SIZE(NumClauses() + 1, 0);
 
   // 2 .. 2n+1
   // F[l] = forward, first cell that contains literal l
-  // B[l] = backward, last cell that contains literal l
   // C[l] = number of currently active cells in which l appears
 
   // 2n+2 .. inf
   // L[p] = literal contained in this cell
   // F[p] = forward, next cell that contains literal L[p]
-  // B[p] = backward, prev cell that contains literal L[p]
   // C[p] = clause in which literal L[p] appears
 
   // ================================================================================
@@ -46,8 +46,6 @@ std::pair<Result, std::vector<Lit>> A::Solve() {
       L.push_back(l);
       F.push_back(F[l] == 0 ? l : F[l]);
       F[l] = p;
-      B.push_back(l);
-      B[F.back()] = p;
       C.push_back(i + 1);
       C[l]++;
       ++p;
@@ -64,9 +62,15 @@ std::pair<Result, std::vector<Lit>> A::Solve() {
 
 A1: // Initialize.
 
-  int a = NumClauses(); // number of active clauses.
-  int d = 1;            // depth-plus-one in an implicit search tree.
-  int l;                // chosen literal.
+  int a = NumClauses();  // number of active clauses.
+  int d = 1;             // depth-plus-one in an implicit search tree.
+  int l;                 // chosen literal.
+  bool makesClauseEmpty; // whether selecting l makes a clause empty.
+
+  auto LastLiteral = [&](int j) {
+    CHECK("clause index out of bounds", 1 <= j && j <= NumClauses());
+    return L[START[j] + SIZE[j] - 1];
+  };
 
 A2: // Choose.
   CHECK("depth must be 1 <= d <= n, so that we can turn it into a literal",
@@ -92,38 +96,39 @@ A2: // Choose.
   }
 
 A3: // Remove ~l.
+  makesClauseEmpty = false;
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
     CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
     int j = C[p];
-    if (SIZE[j] == 1) { // Makes a clause empty, so we need to restore it.
-      for (int q = B[p]; q > 2 * n + 1; q = B[q]) {
-        j = C[q];
-        std::clog << "A3: unremove " << ToString(Lit(l ^ 1)) << " from clause "
-                  << j << std::endl;
-        ++SIZE[j];
-      }
-      goto A5;
+    if (LastLiteral(j) == (l ^ 1) && SIZE[j] == 1) {
+      makesClauseEmpty = true;
+      break;
     }
-    std::clog << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause " << j
-              << std::endl;
-    --SIZE[j];
+  }
+  if (makesClauseEmpty) {
+    goto A5;
+  }
+  for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
+    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    int j = C[p];
+    if (LastLiteral(j) == (l ^ 1)) {
+      std::clog << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause " << j
+                << std::endl;
+      --SIZE[j];
+      CHECK("the resulting clause cannot be empty", SIZE[j] > 0);
+    }
   }
 
 A4: // Deactivate l's clauses.
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
     int j = C[p];
-    std::clog << "A4: deactivate clause " << j << std::endl;
-    for (int i = 0; i < SIZE[j] - 1; ++i) {
-      int s = START[j] + i;
-      CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
-      // Remove the literal cell.
-      // ... r=B[s] <- s -> q=F[s] ...
-      int r = B[s];
-      int q = F[s];
-      B[q] = r;
-      F[r] = q;
-      // Update the active clause count for the removed literal.
-      --C[L[s]];
+    if (LastLiteral(j) == l) {
+      std::clog << "A4: deactivate clause " << j << std::endl;
+      for (int i = 0; i < SIZE[j] - 1; ++i) {
+        CHECK("updated counts cannot refer to the chosen literal",
+              L[START[j] + i] != l);
+        --C[L[START[j] + i]];
+      }
     }
   }
   a -= C[l];
@@ -149,21 +154,15 @@ A6: // Backtrack.
 
 A7: // Reactivate l's clauses.
   a += C[l];
-  // Note that Knuth goes in B[l] order here, but I assume it's just for
-  // symmetry.
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
     int j = C[p];
-    std::clog << "A7: reactivate clause " << j << std::endl;
-    for (int i = 0; i < SIZE[j] - 1; ++i) {
-      int s = START[j] + i;
-      CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
-      // Restore the literal cell.
-      // ... r=B[s] <- s -> q=F[s] ...
-      int r = B[s];
-      int q = F[s];
-      F[r] = B[q] = s;
-      // Update the active clause count for the restored literal.
-      ++C[L[s]];
+    if (LastLiteral(j) == l) {
+      std::clog << "A7: reactivate clause " << j << std::endl;
+      for (int i = 0; i < SIZE[j] - 1; ++i) {
+        CHECK("updated counts cannot refer to the chosen literal",
+              L[START[j] + i] != l);
+        ++C[L[START[j] + i]];
+      }
     }
   }
 
@@ -171,11 +170,13 @@ A8: // Unremove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
     CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
     int j = C[p];
-    std::clog << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j
-              << std::endl;
-    ++SIZE[j];
-    CHECK("last literal must match the unremoved literal",
-          L[START[j] + SIZE[j] - 1] == (l ^ 1));
+    if (LastLiteral(j) > (l ^ 1)) {
+      std::clog << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause "
+                << j << std::endl;
+      ++SIZE[j];
+      CHECK("last literal must match the unremoved literal",
+            LastLiteral(j) == (l ^ 1));
+    }
   }
   goto A5;
 }
