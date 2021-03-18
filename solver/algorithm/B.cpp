@@ -60,49 +60,31 @@ B2: // Rejoice or choose.
   std::clog << std::endl;
 
 B3: // Remove ~l if possible.
-  // TODO: can we do it in a single pass?
-  bool canRemove = true;
-  for (int j = W[l ^ 1]; j != 0; j = LINK[j]) {
-    CHECK("This clause should be watching ~l", L[START[j]] == (l ^ 1));
-    bool hasAnotherWatchee = false;
-    for (int i = START[j] + 1; i < START[j - 1]; ++i) {
-      // if L[i] is unknown or already set to true, we can watch it.
-      int xi = L[i] >> 1;
-      if (xi > d || (m[xi] & 1) == (L[i] & 1)) {
-        hasAnotherWatchee = true;
-        break;
-      }
-    }
-    if (!hasAnotherWatchee) {
-      std::clog << "B3: cannot remove l=" << ToString(Lit(l)) << " from clause "
-                << j << std::endl;
-      canRemove = false;
-      break;
-    }
-  }
-  if (!canRemove) {
-    goto B5;
-  }
   for (int j = W[l ^ 1]; j != 0;) {
-    CHECK("This clause should be watching ~l", L[START[j]] == (l ^ 1));
+    CHECK("Clause should be watching ~l", L[START[j]] == (l ^ 1));
     int k = 0;
     for (int i = START[j] + 1; i < START[j - 1]; ++i) {
       // if L[i] is unknown or already set to true, we can watch it.
-      int xi = L[i] >> 1;
-      if (xi > d || (m[xi] & 1) == (L[i] & 1)) {
+      int x = L[i] >> 1;
+      if (x > d || (m[x] & 1) == (L[i] & 1)) {
         k = i;
         break;
       }
     }
-    CHECK("We should have a new watchee for every clause", k != 0);
+    // If we cannot stop watching ~l.
+    if (k == 0) {
+      goto B5;
+    }
     // Update the watchee for clause j otherwise.
+    int ll = L[k]; // this is the new watched literal.
     int jj = j;
-    j = LINK[j];
-    LINK[jj] = W[L[k]];
-    W[L[k]] = jj;
-    std::swap(L[START[jj]], L[k]);
-    std::clog << "B3: clause " << jj << " is now watching "
-              << ToString(Lit(L[START[jj]])) << std::endl;
+    std::clog << "B3: clause " << j << " is now watching " << ToString(Lit(ll))
+              << std::endl;
+    j = LINK[j];      // move forward to the clauses that watch ~l currently.
+    LINK[jj] = W[ll]; // the updated clause is now the first one watching l'.
+    W[ll] = jj;       // ...so we set it as the head of the list.
+    std::swap(L[START[jj]], L[k]); // move the watched literal to the head.
+    W[l ^ 1] = j; // ...and update the head of the list that watches ~l.
   }
 
 B4: // Advance.
