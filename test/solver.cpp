@@ -5,6 +5,7 @@
 
 #include "solver/algorithm/A.h"
 #include "solver/algorithm/A2.h"
+#include "solver/algorithm/B.h"
 #include "solver/algorithm/Z.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
@@ -15,6 +16,7 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   std::vector<std::unique_ptr<solver::Solver>> solvers;
   solvers.emplace_back(new solver::algorithm::A());
   solvers.emplace_back(new solver::algorithm::A2());
+  solvers.emplace_back(new solver::algorithm::B());
   solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }

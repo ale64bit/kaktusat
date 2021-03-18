@@ -1,5 +1,6 @@
 #include "solver/algorithm/A.h"
 #include "solver/algorithm/A2.h"
+#include "solver/algorithm/B.h"
 #include "solver/algorithm/Z.h"
 #include "solver/builder/dimacs.h"
 #include "solver/builder/simple.h"
@@ -31,6 +32,7 @@ int main(int argc, char *argv[]) {
   std::map<std::string, std::unique_ptr<solver::Solver>> solvers;
   solvers["A"] = std::make_unique<solver::algorithm::A>();
   solvers["A2"] = std::make_unique<solver::algorithm::A2>();
+  solvers["B"] = std::make_unique<solver::algorithm::B>();
   solvers["Z"] = std::make_unique<solver::algorithm::Z>();
 
   if (solvers.count(solverID) == 0) {
@@ -41,7 +43,7 @@ int main(int argc, char *argv[]) {
   auto &solver = *solvers[solverID];
 
   {
-    std::cout << "Reading instance from dimacs file..." << std::endl;
+    std::cout << "Reading instance from DIMACS file..." << std::endl;
     auto start = std::chrono::system_clock::now();
     auto err = solver::builder::FromDimacsFile(solver, path);
     if (!err.empty()) {
