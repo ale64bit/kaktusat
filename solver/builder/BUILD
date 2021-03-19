@@ -2,38 +2,19 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "builder",
-    deps = [
-        ":dimacs",
-        ":langford",
-        ":simple",
-        ":waerden",
+    srcs = [
+        "cardinality.cpp",
+        "dimacs.cpp",
+        "langford.cpp",
+        "simple.cpp",
+        "waerden.cpp",
     ],
-)
-
-cc_library(
-    name = "simple",
-    srcs = ["simple.cpp"],
-    hdrs = ["simple.h"],
-    deps = ["//solver"],
-)
-
-cc_library(
-    name = "dimacs",
-    srcs = ["dimacs.cpp"],
-    hdrs = ["dimacs.h"],
-    deps = ["//solver"],
-)
-
-cc_library(
-    name = "langford",
-    srcs = ["langford.cpp"],
-    hdrs = ["langford.h"],
-    deps = ["//solver"],
-)
-
-cc_library(
-    name = "waerden",
-    srcs = ["waerden.cpp"],
-    hdrs = ["waerden.h"],
+    hdrs = [
+        "cardinality.h",
+        "dimacs.h",
+        "langford.h",
+        "simple.h",
+        "waerden.h",
+    ],
     deps = ["//solver"],
 )

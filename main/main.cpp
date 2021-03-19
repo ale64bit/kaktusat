@@ -2,7 +2,9 @@
 #include "solver/algorithm/A2.h"
 #include "solver/algorithm/B.h"
 #include "solver/algorithm/Z.h"
+#include "solver/builder/cardinality.h"
 #include "solver/builder/dimacs.h"
+#include "solver/builder/langford.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
 

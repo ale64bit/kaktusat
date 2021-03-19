@@ -7,6 +7,7 @@
 #include "solver/algorithm/A2.h"
 #include "solver/algorithm/B.h"
 #include "solver/algorithm/Z.h"
+#include "solver/builder/langford.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
 
@@ -17,7 +18,7 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   solvers.emplace_back(new solver::algorithm::A());
   solvers.emplace_back(new solver::algorithm::A2());
   solvers.emplace_back(new solver::algorithm::B());
-  solvers.emplace_back(new solver::algorithm::Z());
+  // solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }
 
@@ -26,7 +27,10 @@ std::vector<BuildFn> AllSATBuilders() {
       [](solver::Solver &s) { solver::builder::Unit(s); },
       [](solver::Solver &s) { solver::builder::Tautology(s); },
       [](solver::Solver &s) { solver::builder::Rprime(s); },
-      [](solver::Solver &s) { solver::builder::waerden(s, 3, 3, 8); },
+      [](solver::Solver &s) { solver::builder::Waerden(s, 3, 3, 8); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 3); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 4); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 7); },
   };
 }
 
@@ -34,7 +38,10 @@ std::vector<BuildFn> AllUNSATBuilders() {
   return {
       [](solver::Solver &s) { solver::builder::Contradiction(s); },
       [](solver::Solver &s) { solver::builder::R(s); },
-      [](solver::Solver &s) { solver::builder::waerden(s, 3, 3, 9); },
+      [](solver::Solver &s) { solver::builder::Waerden(s, 3, 3, 9); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 2); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 5); },
+      [](solver::Solver &s) { solver::builder::Langford(s, 6); },
   };
 }
 

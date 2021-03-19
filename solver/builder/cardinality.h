@@ -2,10 +2,12 @@
 
 #include "solver/solver.h"
 
+#include <vector>
+
 namespace solver {
 namespace builder {
 
-void Langford(Solver &, int);
+void ExactlyOne(Solver &, const std::vector<Lit> &);
 
 } // namespace builder
 } // namespace solver
