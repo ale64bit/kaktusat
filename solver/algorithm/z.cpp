@@ -1,4 +1,4 @@
-#include "solver/algorithm/Z.h"
+#include "solver/algorithm/z.h"
 
 #include <algorithm>
 #include <functional>

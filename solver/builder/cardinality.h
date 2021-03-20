@@ -1,8 +1,8 @@
 #pragma once
 
-#include "solver/solver.h"
-
 #include <vector>
+
+#include "solver/solver.h"
 
 namespace solver {
 namespace builder {

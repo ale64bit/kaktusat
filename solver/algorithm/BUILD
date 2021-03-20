@@ -3,17 +3,17 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "algorithm",
     deps = [
-        ":A",
-        ":A2",
-        ":B",
-        ":Z",
+        ":a",
+        ":a2",
+        ":b",
+        ":z",
     ],
 )
 
 cc_library(
-    name = "A",
-    srcs = ["A.cpp"],
-    hdrs = ["A.h"],
+    name = "a",
+    srcs = ["a.cpp"],
+    hdrs = ["a.h"],
     deps = [
         "//solver",
         "//util",
@@ -21,9 +21,9 @@ cc_library(
 )
 
 cc_library(
-    name = "B",
-    srcs = ["B.cpp"],
-    hdrs = ["B.h"],
+    name = "b",
+    srcs = ["b.cpp"],
+    hdrs = ["b.h"],
     deps = [
         "//solver",
         "//util",
@@ -31,9 +31,9 @@ cc_library(
 )
 
 cc_library(
-    name = "A2",
-    srcs = ["A2.cpp"],
-    hdrs = ["A2.h"],
+    name = "a2",
+    srcs = ["a2.cpp"],
+    hdrs = ["a2.h"],
     deps = [
         "//solver",
         "//util",
@@ -41,8 +41,8 @@ cc_library(
 )
 
 cc_library(
-    name = "Z",
-    srcs = ["Z.cpp"],
-    hdrs = ["Z.h"],
+    name = "z",
+    srcs = ["z.cpp"],
+    hdrs = ["z.h"],
     deps = ["//solver"],
 )

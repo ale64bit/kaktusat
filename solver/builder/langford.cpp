@@ -1,8 +1,8 @@
 #include "solver/builder/langford.h"
 
-#include "solver/builder/cardinality.h"
-
 #include <vector>
+
+#include "solver/builder/cardinality.h"
 
 namespace solver {
 namespace builder {

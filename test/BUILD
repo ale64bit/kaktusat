@@ -1,6 +1,6 @@
 cc_test(
-    name = "solver",
-    srcs = ["solver.cpp"],
+    name = "solver_test",
+    srcs = ["solver_test.cpp"],
     deps = [
         "//solver/algorithm",
         "//solver/builder",

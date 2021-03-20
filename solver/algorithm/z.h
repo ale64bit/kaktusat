@@ -1,18 +1,19 @@
 #pragma once
 
-#include "solver/solver.h"
-
+#include <string>
 #include <vector>
+
+#include "solver/solver.h"
 
 namespace solver {
 namespace algorithm {
 
-class A : public Solver {
+class Z : public Solver {
 public:
-  A() {}
+  Z() {}
 
   std::pair<Result, std::vector<Lit>> Solve() override;
-  std::string ID() const override { return "A"; }
+  std::string ID() const override { return "Z"; }
 };
 
 } // namespace algorithm

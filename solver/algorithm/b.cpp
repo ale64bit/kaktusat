@@ -1,4 +1,4 @@
-#include "solver/algorithm/B.h"
+#include "solver/algorithm/b.h"
 
 #include <algorithm>
 #include <iomanip>

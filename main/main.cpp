@@ -1,13 +1,3 @@
-#include "solver/algorithm/A.h"
-#include "solver/algorithm/A2.h"
-#include "solver/algorithm/B.h"
-#include "solver/algorithm/Z.h"
-#include "solver/builder/cardinality.h"
-#include "solver/builder/dimacs.h"
-#include "solver/builder/langford.h"
-#include "solver/builder/simple.h"
-#include "solver/builder/waerden.h"
-
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -16,6 +6,16 @@
 #include <memory>
 #include <string>
 #include <utility>
+
+#include "solver/algorithm/a.h"
+#include "solver/algorithm/a2.h"
+#include "solver/algorithm/b.h"
+#include "solver/algorithm/z.h"
+#include "solver/builder/cardinality.h"
+#include "solver/builder/dimacs.h"
+#include "solver/builder/langford.h"
+#include "solver/builder/simple.h"
+#include "solver/builder/waerden.h"
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {

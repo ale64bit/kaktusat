@@ -1,12 +1,12 @@
-#include "gtest/gtest.h"
-
 #include <memory>
 #include <vector>
 
-#include "solver/algorithm/A.h"
-#include "solver/algorithm/A2.h"
-#include "solver/algorithm/B.h"
-#include "solver/algorithm/Z.h"
+#include "gtest/gtest.h"
+
+#include "solver/algorithm/a.h"
+#include "solver/algorithm/a2.h"
+#include "solver/algorithm/b.h"
+#include "solver/algorithm/z.h"
 #include "solver/builder/langford.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
