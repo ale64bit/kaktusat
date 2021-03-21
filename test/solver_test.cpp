@@ -6,6 +6,7 @@
 #include "solver/algorithm/a.h"
 #include "solver/algorithm/a2.h"
 #include "solver/algorithm/b.h"
+#include "solver/algorithm/d.h"
 #include "solver/algorithm/z.h"
 #include "solver/builder/langford.h"
 #include "solver/builder/simple.h"
@@ -18,6 +19,7 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   solvers.emplace_back(new solver::algorithm::A());
   solvers.emplace_back(new solver::algorithm::A2());
   solvers.emplace_back(new solver::algorithm::B());
+  solvers.emplace_back(new solver::algorithm::D());
   // solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }

@@ -6,6 +6,7 @@ cc_library(
         ":a",
         ":a2",
         ":b",
+        ":d",
         ":z",
     ],
 )
@@ -34,6 +35,16 @@ cc_library(
     name = "a2",
     srcs = ["a2.cpp"],
     hdrs = ["a2.h"],
+    deps = [
+        "//solver",
+        "//util",
+    ],
+)
+
+cc_library(
+    name = "d",
+    srcs = ["d.cpp"],
+    hdrs = ["d.h"],
     deps = [
         "//solver",
         "//util",

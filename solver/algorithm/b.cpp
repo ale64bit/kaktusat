@@ -22,8 +22,8 @@ std::pair<Result, std::vector<Lit>> B::Solve() {
   std::vector<int> START(NumClauses() + 1, 0);
   std::vector<int> LINK(NumClauses() + 1, 0);
 
+  // Build the clause data structure and watch lists.
   // Literals of clause j are in the cells START[j] to START[j-1]-1.
-
   for (int j = NumClauses(); j >= 1; --j) {
     START[j] = L.size();
     for (auto l : clauses_[j - 1]) {
@@ -35,6 +35,10 @@ std::pair<Result, std::vector<Lit>> B::Solve() {
   }
   START[0] = L.size();
 
+  // m[j] = 0: trying xj, didn't try ~xj yet.
+  // m[j] = 1: trying ~xj, didn't try xj, yet.
+  // m[j] = 2: trying xj, after ~xj failed.
+  // m[j] = 3: trying ~xj, after xj failed.
   std::vector<int> m(NumVars() + 1, 0);
 
 B1: // Initialize.
