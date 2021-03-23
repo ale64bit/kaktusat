@@ -3,21 +3,18 @@
 namespace solver {
 namespace builder {
 
-void Unit(Solver &solver) {
-  solver.Reset();
-  auto x = solver.NewVar("x");
+void Unit(Solver &solver, std::string id) {
+  auto x = solver.NewVar(id);
   solver.AddClause({x});
 }
 
-void Tautology(Solver &solver) {
-  solver.Reset();
-  auto x = solver.NewVar("x");
+void Tautology(Solver &solver, std::string id) {
+  auto x = solver.NewVar(id);
   solver.AddClause({x, ~x});
 }
 
-void Contradiction(Solver &solver) {
-  solver.Reset();
-  auto x = solver.NewVar("x");
+void Contradiction(Solver &solver, std::string id) {
+  auto x = solver.NewVar(id);
   solver.AddClause({x});
   solver.AddClause({~x});
 }
@@ -35,8 +32,6 @@ void R(Solver &solver) {
 
 // 7.2.2.2 - (7), p4
 void Rprime(Solver &solver) {
-  solver.Reset();
-
   auto x1 = solver.NewVar("x1");
   auto x2 = solver.NewVar("x2");
   auto x3 = solver.NewVar("x3");

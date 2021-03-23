@@ -14,12 +14,7 @@ namespace builder {
 constexpr size_t kMaxLineLen = 1024;
 constexpr size_t kMaxFormatLen = 1024;
 
-/*
- * @see: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps
- */
 std::string FromDimacsFile(Solver &solver, std::string filename) {
-  solver.Reset();
-
   std::unique_ptr<std::FILE, decltype(&std::fclose)> f(
       std::fopen(filename.c_str(), "r"), &std::fclose);
   if (!f) {

@@ -7,14 +7,7 @@
 namespace solver {
 namespace builder {
 
-/*
- * Instance builder for Langford's pairs problem.
- *
- * @see: 7.2.2.2 - (11), p5
- */
 void Langford(Solver &solver, int n) {
-  solver.Reset();
-
   auto VarId = [](int i, int j, int k) {
     return "d" + std::to_string(i) + "s" + std::to_string(j) + "s" +
            std::to_string(k);

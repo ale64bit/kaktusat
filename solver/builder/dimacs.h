@@ -7,6 +7,9 @@
 namespace solver {
 namespace builder {
 
+/*
+ * @see: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps
+ */
 std::string FromDimacsFile(Solver &, std::string);
 
 } // namespace builder
