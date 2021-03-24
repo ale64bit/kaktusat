@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "solver/builder/cardinality.h"
+
 namespace solver {
 namespace builder {
 
@@ -27,6 +29,39 @@ void Waerden(Solver &solver, int j, int k, int n) {
         clause.push_back(~x[i + a * d - 1]);
       }
       solver.AddClause(clause);
+    }
+  }
+}
+
+void Waerden(Solver &solver, std::vector<int> k, int n) {
+  const int b = (int)k.size();
+  std::vector<std::vector<Var>> x(n);
+  for (int i = 1; i <= n; ++i) {
+    for (int j = 0; j < b; ++j) {
+      x[i - 1].push_back(
+          solver.NewVar("x" + std::to_string(i) + "_" + std::to_string(j)));
+    }
+  }
+
+  // Each position is assigned a color.
+  for (int i = 0; i < n; ++i) {
+    std::vector<Lit> pos;
+    for (int j = 0; j < b; ++j) {
+      pos.push_back(x[i][j]);
+    }
+    ExactlyOne(solver, pos);
+  }
+
+  // No k[j] equally spaced colors are the same.
+  for (int d = 1; d < n; ++d) {
+    for (int j = 0; j < b; ++j) {
+      for (int i = 1; i + (k[j] - 1) * d <= n; ++i) {
+        std::vector<Lit> clause;
+        for (int a = 0; a < k[j]; ++a) {
+          clause.push_back(~x[i + a * d - 1][j]);
+        }
+        solver.AddClause(clause);
+      }
     }
   }
 }
