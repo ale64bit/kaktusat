@@ -8,6 +8,9 @@
 namespace solver {
 namespace algorithm {
 
+/*
+ * 7.2.2.2 - Algorithm B (Satisfiability by watching) - p31
+ */
 class B : public Solver {
 public:
   B() {}

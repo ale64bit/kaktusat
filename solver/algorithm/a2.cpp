@@ -9,13 +9,6 @@
 namespace solver {
 namespace algorithm {
 
-/*
- * 7.2.2.2 - Algorithm A - p28
- *
- * This was my original implementation, which doesn't remove the literals from
- * deactivated clauses but instead uses the order of literals inside clauses to
- * maintain whether they are active or not.
- */
 std::pair<Result, std::vector<Lit>> A2::Solve() {
   const int n = NumVars();
 

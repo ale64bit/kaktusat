@@ -44,6 +44,10 @@ Var Solver::GetVar(std::string name) const {
   return nameToVar_.at(name);
 }
 
+std::vector<std::string> Solver::GetVars() const { return name_; }
+
+std::vector<std::vector<Lit>> Solver::GetClauses() const { return clauses_; }
+
 std::string Solver::NameOf(Var x) const { return name_[x.ID() - 1]; }
 
 void Solver::AddClause(std::vector<Lit> c) { clauses_.emplace_back(c); }

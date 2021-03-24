@@ -9,9 +9,6 @@
 namespace solver {
 namespace algorithm {
 
-/*
- * 7.2.2.2 - Algorithm B - p31
- */
 std::pair<Result, std::vector<Lit>> B::Solve() {
   // L[i]     = i-th cell's literal.
   // W[l]     = first clause watching literal l or 0 if none.

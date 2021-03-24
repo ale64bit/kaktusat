@@ -8,6 +8,10 @@
 namespace solver {
 namespace algorithm {
 
+/*
+ * 7.2.2.2 - Algorithm A (Satisfiability by backtracking) - p28
+ * 7.2.2.2 - Exercise 121 - p143, p208
+ */
 class A : public Solver {
 public:
   A() {}

@@ -8,6 +8,7 @@
 namespace solver {
 namespace algorithm {
 
+/* The slowest solver in the west. */
 class Z : public Solver {
 public:
   Z() {}

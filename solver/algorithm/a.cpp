@@ -9,10 +9,6 @@
 namespace solver {
 namespace algorithm {
 
-/*
- * 7.2.2.2 - Algorithm A - p28
- * 7.2.2.2 - Exercise 121 - p143, p208
- */
 std::pair<Result, std::vector<Lit>> A::Solve() {
   const int n = NumVars();
 

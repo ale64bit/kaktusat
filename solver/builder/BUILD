@@ -16,5 +16,8 @@ cc_library(
         "simple.h",
         "waerden.h",
     ],
-    deps = ["//solver"],
+    deps = [
+        "//solver",
+        "//util",
+    ],
 )
