@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "solver/builder/builder.h"
 #include "solver/solver.h"
 
 namespace solver {
@@ -10,25 +11,29 @@ namespace builder {
 /*
  * Constraints given literals so that exactly one must be true.
  *
- * The input literals must be on variables previously created by other means.
+ * The input literals must be on existing variables.
  *
  * Resets solver: NO
  * Number of variables: n
  * Number of clauses: m+O(k^2) where k is the number of given literals.
  */
-void ExactlyOne(Solver &, const std::vector<Lit> &);
+void ExactlyOne(Solver &, const std::vector<Lit> &,
+                Mode = Mode::kLessVariables);
 
-// TODO doc
-void AtLeastOne(Solver &, const std::vector<Lit> &);
+/*
+ * Constraints given literals so that at least one can be true.
+ *
+ * The input literals must be on existing variables.
+ */
+void AtLeastOne(Solver &, const std::vector<Lit> &,
+                Mode = Mode::kLessVariables);
 
-// TODO doc
-void AtMostOneSimple(Solver &, const std::vector<Lit> &);
-
-// TODO doc
-void AtMostOne(Solver &, Lit, Lit);
-void AtMostOne(Solver &, Lit, Lit, Lit);
-void AtMostOne(Solver &, Lit, Lit, Lit, Lit);
-void AtMostOne(Solver &, const std::vector<Lit> &);
+/*
+ * Constraints given literals so that at most one can be true.
+ *
+ * The input literals must be on existing variables.
+ */
+void AtMostOne(Solver &, const std::vector<Lit> &, Mode = Mode::kLessVariables);
 
 } // namespace builder
 } // namespace solver

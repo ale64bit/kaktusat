@@ -10,10 +10,6 @@ namespace builder {
 /*
  * Instance builder for an instance stored in a DIMACS format file.
  *
- * Resets solver: NO
- * Number of variables: n + input file.
- * Number of clauses: m + input file.
- *
  * @see: https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps
  */
 std::string FromDimacsFile(Solver &, std::string);

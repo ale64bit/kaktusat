@@ -33,7 +33,7 @@ void Waerden(Solver &solver, int j, int k, int n) {
   }
 }
 
-void Waerden(Solver &solver, std::vector<int> k, int n) {
+void Waerden(Solver &solver, std::vector<int> k, int n, Mode mode) {
   const int b = (int)k.size();
   std::vector<std::vector<Var>> x(n);
   for (int i = 1; i <= n; ++i) {
@@ -49,7 +49,7 @@ void Waerden(Solver &solver, std::vector<int> k, int n) {
     for (int j = 0; j < b; ++j) {
       pos.push_back(x[i][j]);
     }
-    ExactlyOne(solver, pos);
+    ExactlyOne(solver, pos, mode);
   }
 
   // No k[j] equally spaced colors are the same.

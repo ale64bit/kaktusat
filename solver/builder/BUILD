@@ -10,6 +10,7 @@ cc_library(
         "waerden.cpp",
     ],
     hdrs = [
+        "builder.h",
         "cardinality.h",
         "dimacs.h",
         "langford.h",

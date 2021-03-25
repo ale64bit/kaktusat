@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "solver/builder/builder.h"
 #include "solver/solver.h"
 
 namespace solver {
@@ -37,7 +38,7 @@ void Waerden(Solver &, int, int, int);
  * @see: 7.2.2.2 - (10), p4
  * @see: 7.2.2.2 - exercise 8, p133
  */
-void Waerden(Solver &, std::vector<int>, int);
+void Waerden(Solver &, std::vector<int>, int, Mode = Mode::kLessVariables);
 
 } // namespace builder
 } // namespace solver

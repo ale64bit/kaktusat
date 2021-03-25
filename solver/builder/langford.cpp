@@ -7,7 +7,7 @@
 namespace solver {
 namespace builder {
 
-void Langford(Solver &solver, int n) {
+void Langford(Solver &solver, int n, Mode mode) {
   auto VarId = [](int i, int j, int k) {
     return "d" + std::to_string(i) + "s" + std::to_string(j) + "s" +
            std::to_string(k);
@@ -28,12 +28,12 @@ void Langford(Solver &solver, int n) {
 
   // Each digit pair must be placed exactly once.
   for (int i = 1; i <= n; ++i) {
-    ExactlyOne(solver, perDigit[i]);
+    ExactlyOne(solver, perDigit[i], mode);
   }
 
   // Each slot must be used exactly once.
   for (int j = 1; j <= 2 * n; ++j) {
-    ExactlyOne(solver, perSlot[j]);
+    ExactlyOne(solver, perSlot[j], mode);
   }
 }
 
