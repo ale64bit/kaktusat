@@ -4,6 +4,7 @@ cc_library(
     name = "builder",
     srcs = [
         "cardinality.cpp",
+        "coloring.cpp",
         "dimacs.cpp",
         "langford.cpp",
         "simple.cpp",
@@ -12,6 +13,7 @@ cc_library(
     hdrs = [
         "builder.h",
         "cardinality.h",
+        "coloring.h",
         "dimacs.h",
         "langford.h",
         "simple.h",

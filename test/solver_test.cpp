@@ -8,11 +8,19 @@
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/z.h"
+#include "solver/builder/coloring.h"
 #include "solver/builder/langford.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
 
 using BuildFn = std::function<void(solver::Solver &)>;
+
+// TODO: move to collection of useful objects
+const std::vector<std::pair<std::string, std::string>> kPetersen = {
+    {"1", "2"}, {"1", "5"}, {"1", "6"}, {"2", "3"},  {"2", "7"},
+    {"3", "4"}, {"3", "8"}, {"4", "5"}, {"4", "9"},  {"5", "10"},
+    {"6", "8"}, {"6", "9"}, {"7", "9"}, {"7", "10"}, {"8", "10"},
+};
 
 std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   std::vector<std::unique_ptr<solver::Solver>> solvers;
@@ -33,6 +41,7 @@ std::vector<BuildFn> AllSATBuilders() {
       [](solver::Solver &s) { solver::builder::Langford(s, 3); },
       [](solver::Solver &s) { solver::builder::Langford(s, 4); },
       [](solver::Solver &s) { solver::builder::Langford(s, 7); },
+      [](solver::Solver &s) { solver::builder::Coloring(s, 3, kPetersen); },
   };
 }
 
@@ -44,6 +53,7 @@ std::vector<BuildFn> AllUNSATBuilders() {
       [](solver::Solver &s) { solver::builder::Langford(s, 2); },
       [](solver::Solver &s) { solver::builder::Langford(s, 5); },
       [](solver::Solver &s) { solver::builder::Langford(s, 6); },
+      [](solver::Solver &s) { solver::builder::Coloring(s, 2, kPetersen); },
   };
 }
 
