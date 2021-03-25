@@ -11,6 +11,7 @@
 #include "solver/algorithm/a2.h"
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
+#include "solver/algorithm/nop.h"
 #include "solver/algorithm/z.h"
 #include "solver/builder/cardinality.h"
 #include "solver/builder/dimacs.h"
@@ -37,6 +38,7 @@ int main(int argc, char *argv[]) {
   solvers["A2"] = std::make_unique<solver::algorithm::A2>();
   solvers["B"] = std::make_unique<solver::algorithm::B>();
   solvers["D"] = std::make_unique<solver::algorithm::D>();
+  solvers["NOP"] = std::make_unique<solver::algorithm::Nop>();
   solvers["Z"] = std::make_unique<solver::algorithm::Z>();
 
   if (solvers.count(solverID) == 0) {

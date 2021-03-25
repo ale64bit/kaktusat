@@ -7,6 +7,7 @@ cc_library(
         ":a2",
         ":b",
         ":d",
+        ":nop",
         ":z",
     ],
 )
@@ -49,6 +50,13 @@ cc_library(
         "//solver",
         "//util",
     ],
+)
+
+cc_library(
+    name = "nop",
+    srcs = ["nop.cpp"],
+    hdrs = ["nop.h"],
+    deps = ["//solver"],
 )
 
 cc_library(
