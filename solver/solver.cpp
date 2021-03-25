@@ -20,7 +20,9 @@ bool Lit::operator<(const Lit &that) const { return this->l < that.l; }
 Lit Lit::operator~() const { return Lit(l ^ 1); }
 Var Lit::V() const { return Var(l >> 1); }
 
-Solver::Solver() : n_(0) {}
+Solver::Solver() : n_(0), tmpID_(0) {}
+
+Var Solver::NewTempVar() { return NewVar("t" + std::to_string(tmpID_++)); }
 
 Var Solver::NewVar(std::string name) {
   assert(nameToVar_.count(name) == 0);
@@ -57,6 +59,7 @@ void Solver::Reset() {
   name_.clear();
   clauses_.clear();
   nameToVar_.clear();
+  tmpID_ = 0;
 }
 
 bool Solver::Verify(const std::vector<Lit> &solution,

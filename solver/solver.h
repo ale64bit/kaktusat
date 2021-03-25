@@ -52,6 +52,7 @@ public:
   virtual ~Solver() {}
 
   Var NewVar(std::string);
+  Var NewTempVar();
   Var NewOrGetVar(std::string);
   Var GetVar(std::string) const;
   std::string NameOf(Var) const;
@@ -75,6 +76,7 @@ protected:
   std::vector<std::string> name_;
   std::vector<std::vector<Lit>> clauses_;
   std::unordered_map<std::string, Var> nameToVar_;
+  int tmpID_;
 };
 
 } // namespace solver
