@@ -18,5 +18,17 @@ namespace builder {
  */
 void ExactlyOne(Solver &, const std::vector<Lit> &);
 
+// TODO doc
+void AtLeastOne(Solver &, const std::vector<Lit> &);
+
+// TODO doc
+void AtMostOneSimple(Solver &, const std::vector<Lit> &);
+
+// TODO doc
+void AtMostOne(Solver &, Lit, Lit);
+void AtMostOne(Solver &, Lit, Lit, Lit);
+void AtMostOne(Solver &, Lit, Lit, Lit, Lit);
+void AtMostOne(Solver &, const std::vector<Lit> &);
+
 } // namespace builder
 } // namespace solver

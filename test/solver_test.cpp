@@ -50,6 +50,7 @@ std::vector<BuildFn> AllUNSATBuilders() {
 TEST(SolverTest, SATTest) {
   for (auto builder : AllSATBuilders()) {
     for (auto &solver : AllSolvers()) {
+      solver->Reset();
       builder(*solver);
       auto [res, sol] = solver->Solve();
       EXPECT_EQ(res, solver::Result::kSAT);
@@ -61,6 +62,7 @@ TEST(SolverTest, SATTest) {
 TEST(SolverTest, UNSATTest) {
   for (auto builder : AllUNSATBuilders()) {
     for (auto &solver : AllSolvers()) {
+      solver->Reset();
       builder(*solver);
       auto [res, sol] = solver->Solve();
       EXPECT_EQ(res, solver::Result::kUNSAT);
