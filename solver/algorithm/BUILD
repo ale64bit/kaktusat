@@ -5,6 +5,7 @@ cc_library(
     deps = [
         ":a",
         ":a2",
+        ":analyze",
         ":b",
         ":d",
         ":nop",
@@ -20,6 +21,13 @@ cc_library(
         "//solver",
         "//util",
     ],
+)
+
+cc_library(
+    name = "analyze",
+    srcs = ["analyze.cpp"],
+    hdrs = ["analyze.h"],
+    deps = ["//solver"],
 )
 
 cc_library(

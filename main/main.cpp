@@ -9,6 +9,7 @@
 
 #include "solver/algorithm/a.h"
 #include "solver/algorithm/a2.h"
+#include "solver/algorithm/analyze.h"
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/nop.h"
@@ -40,6 +41,7 @@ int main(int argc, char *argv[]) {
   solvers["D"] = std::make_unique<solver::algorithm::D>();
   solvers["NOP"] = std::make_unique<solver::algorithm::Nop>();
   solvers["Z"] = std::make_unique<solver::algorithm::Z>();
+  solvers["?"] = std::make_unique<solver::algorithm::Analyze>();
 
   if (solvers.count(solverID) == 0) {
     std::cout << "unknown algorithm: " << solverID << std::endl;
@@ -60,8 +62,6 @@ int main(int argc, char *argv[]) {
     std::chrono::duration<double> diff = end - start;
     std::cout << "Instance built in " << std::fixed << std::setprecision(3)
               << diff.count() << " secs" << std::endl;
-    std::cout << "  N=" << solver.NumVars() << " M=" << solver.NumClauses()
-              << std::endl;
   }
 
   {
