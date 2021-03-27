@@ -9,6 +9,9 @@
 namespace solver {
 namespace builder {
 
+/* Represents a graph as a list of edges between named vertices. */
+using GraphEdges = std::vector<std::pair<std::string, std::string>>;
+
 /*
  * Instance builder for graph coloring problems.
  *
@@ -21,9 +24,13 @@ namespace builder {
  * @see: https://en.wikipedia.org/wiki/Graph_coloring
  * @see: 7.2.2.2 - (11), p6
  */
-void Coloring(Solver &, int d,
-              std::vector<std::pair<std::string, std::string>> edges,
-              Mode = Mode::kLessVariables);
+void Coloring(Solver &, int d, GraphEdges edges, Mode = Mode::kLessVariables);
+
+namespace graph {
+/* Some predefined small graph examples. */
+GraphEdges Petersen();
+GraphEdges McGregor3();
+}; // namespace graph
 
 } // namespace builder
 } // namespace solver
