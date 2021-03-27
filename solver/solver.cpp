@@ -1,19 +1,22 @@
 #include "solver.h"
 
-#include <cassert>
 #include <set>
 #include <sstream>
 
 namespace solver {
 
-Var::Var(int x) : x(x) { assert(x != 0); }
+Var::Var(int x) : x(x) {
+  CHECK("Variable representation must be positive.", x > 0);
+}
 bool Var::operator==(const Var &that) const { return this->x == that.x; }
 bool Var::operator!=(const Var &that) const { return this->x != that.x; }
 bool Var::operator<(const Var &that) const { return this->x < that.x; }
 Var::operator Lit() const { return Lit(2 * x); }
 Lit Var::operator~() const { return Lit(2 * x + 1); }
 
-Lit::Lit(int l) : l(l) { assert(l != 0); }
+Lit::Lit(int l) : l(l) {
+  CHECK("Literal representation must be positive.", l > 0);
+}
 bool Lit::operator==(const Lit &that) const { return this->l == that.l; }
 bool Lit::operator!=(const Lit &that) const { return this->l != that.l; }
 bool Lit::operator<(const Lit &that) const { return this->l < that.l; }
@@ -22,10 +25,15 @@ Var Lit::V() const { return Var(l >> 1); }
 
 Solver::Solver() : n_(0), tmpID_(0) {}
 
-Var Solver::NewTempVar() { return NewVar("t" + std::to_string(tmpID_++)); }
+Var Solver::NewTempVar(std::string prefix) {
+  while (nameToVar_.count(prefix + "__" + std::to_string(tmpID_))) {
+    ++tmpID_;
+  }
+  return NewVar(prefix + "__" + std::to_string(tmpID_++));
+}
 
 Var Solver::NewVar(std::string name) {
-  assert(nameToVar_.count(name) == 0);
+  CHECK("Variable names must be unique", nameToVar_.count(name) == 0);
   name_.push_back(name);
   ++n_;
   Var x(n_);
@@ -42,7 +50,7 @@ Var Solver::NewOrGetVar(std::string name) {
 }
 
 Var Solver::GetVar(std::string name) const {
-  assert(nameToVar_.count(name) > 0);
+  CHECK("Variable name must exist", nameToVar_.count(name) > 0);
   return nameToVar_.at(name);
 }
 
@@ -68,7 +76,7 @@ bool Solver::Verify(const std::vector<Lit> &solution,
   for (auto lit : solution) {
     if (used[lit.ID()] || used[(~lit).ID()]) {
       if (errMsg) {
-        *errMsg = "literal used multiple times";
+        *errMsg = "literal used multiple times: " + ToString(lit.V());
       }
       return false;
     }
@@ -84,7 +92,7 @@ bool Solver::Verify(const std::vector<Lit> &solution,
     }
     if (!ok) {
       if (errMsg) {
-        *errMsg = "clause left unsatisfied";
+        *errMsg = "clause left unsatisfied: " + ToString(clause);
       }
       return false;
     }

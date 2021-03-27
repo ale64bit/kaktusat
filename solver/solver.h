@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "util/check.h"
+
 namespace solver {
 
 class Var;
@@ -52,7 +54,7 @@ public:
   virtual ~Solver() {}
 
   Var NewVar(std::string);
-  Var NewTempVar();
+  Var NewTempVar(std::string = "t");
   Var NewOrGetVar(std::string);
   Var GetVar(std::string) const;
   std::string NameOf(Var) const;

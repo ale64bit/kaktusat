@@ -35,5 +35,19 @@ void AtLeastOne(Solver &, const std::vector<Lit> &,
  */
 void AtMostOne(Solver &, const std::vector<Lit> &, Mode = Mode::kLessVariables);
 
+/*
+ * Constraints given literals so that at least r of them can be true.
+ *
+ * The input literals must be on existing variables.
+ */
+void AtLeast(Solver &, const std::vector<Lit> &, int r);
+
+/*
+ * Constraints given literals so that at most r of them can be true.
+ *
+ * The input literals must be on existing variables.
+ */
+void AtMost(Solver &, const std::vector<Lit> &, int r);
+
 } // namespace builder
 } // namespace solver

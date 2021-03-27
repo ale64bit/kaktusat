@@ -1,5 +1,7 @@
 #include "solver/builder/cardinality.h"
 
+#include <iostream>
+
 namespace solver {
 namespace builder {
 
@@ -73,6 +75,58 @@ void AtMostOne(Solver &solver, const std::vector<Lit> &y, Mode mode) {
     AtMostOneLessClauses(solver, y);
     break;
   }
+}
+
+void AtLeast(Solver &solver, const std::vector<Lit> &x, int r) {
+  const int n = (int)x.size();
+  std::vector<Lit> y;
+  for (const auto &xi : x) {
+    y.push_back(~xi);
+  }
+  return AtMost(solver, y, n - r);
+}
+
+// Sinz's method.
+void AtMostMethod1(Solver &solver, const std::vector<Lit> &x, int r) {
+  const int n = (int)x.size();
+
+  // Create additional variables.
+
+  // s(k,j) : 1<=k<=r, 1<=j<=n-r
+  std::vector<std::vector<Var>> s(r);
+  for (int k = 1; k <= r; ++k) {
+    for (int j = 1; j <= n - r; ++j) {
+      std::string id = "s" + std::to_string(k) + "_" + std::to_string(j);
+      s[k - 1].push_back(solver.NewTempVar(id));
+    }
+  }
+
+  // Add constraints.
+
+  // (~s(k,j) \/ s(k,j+1))
+  for (int k = 1; k <= r; ++k) {
+    for (int j = 1; j < n - r; ++j) {
+      solver.AddClause({~s[k - 1][j - 1], s[k - 1][j]});
+    }
+  }
+
+  // (~x(j+k) \/ ~s(k,j) \/ s(k+1,j))
+  for (int k = 0; k <= r; ++k) {
+    for (int j = 1; j <= n - r; ++j) {
+      std::vector<Lit> clause{~x[j + k - 1]};
+      if (k > 0) {
+        clause.emplace_back(~s[k - 1][j - 1]);
+      }
+      if (k < r) {
+        clause.emplace_back(s[k][j - 1]);
+      }
+      solver.AddClause(clause);
+    }
+  }
+}
+
+void AtMost(Solver &solver, const std::vector<Lit> &x, int r) {
+  AtMostMethod1(solver, x, r);
 }
 
 } // namespace builder
