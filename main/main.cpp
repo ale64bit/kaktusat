@@ -14,11 +14,6 @@
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/nop.h"
 #include "solver/algorithm/z.h"
-#include "solver/builder/cardinality.h"
-#include "solver/builder/dimacs.h"
-#include "solver/builder/langford.h"
-#include "solver/builder/simple.h"
-#include "solver/builder/waerden.h"
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {

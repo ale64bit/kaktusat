@@ -85,9 +85,10 @@ D2: // Success?
   // If the ring is empty, no variable is being watched.
   if (tail == 0) {
     std::vector<Lit> ret;
-    for (int j = 1; j <= NumVars(); ++j) {
-      Var y(j);
-      ret.push_back(x[j] ? y : ~y);
+    for (int j = 1; j <= d; ++j) {
+      CHECK("Each solution literal must have a known value", x[h[j]] != -1);
+      Var y(h[j]);
+      ret.push_back(x[h[j]] ? y : ~y);
     }
     return {Result::kSAT, ret};
   }
@@ -182,13 +183,17 @@ D6: // Update watches.
       int y = ll >> 1;
       std::clog << "D6: variable " << ToString(Var(y)) << " added to ring"
                 << std::endl;
-      NEXT[y] = head;
-      head = y;
+      if (tail == 0) {
+        head = tail = y;
+      } else {
+        NEXT[y] = head;
+        head = y;
+      }
       NEXT[tail] = head;
     }
     j = LINK[j];      // move forward to other clauses that watch ~l currently.
     LINK[jj] = W[ll]; // the updated clause is now the first one watching l'.
-    W[ll] = jj;       // ...so we set it as the h of the list.
+    W[ll] = jj;       // ...so we set it as the head of the list.
     std::swap(L[START[jj]], L[ii]); // move the watched literal to the head.
   }
   W[2 * k + x[k]] = 0;
@@ -199,6 +204,7 @@ D7: // Backtrack.
   while (m[d] >= 2) {
     k = h[d];
     CHECK("k must be a valid variable", 1 <= k && k <= NumVars());
+    CHECK("x[k] must be set", x[k] != -1);
     x[k] = -1;
     // k is now active again, and if watched, it must be added back to the ring.
     if ((W[2 * k] != 0) || (W[2 * k + 1] != 0)) {
@@ -215,6 +221,7 @@ D8: // Failure?
   if (d > 0) {
     m[d] = 3 - m[d];
     k = h[d];
+    CHECK("Switched variable must still be set", x[k] != -1);
     std::clog << "D8: variable " << ToString(Var(k)) << " switched"
               << std::endl;
     goto D6;

@@ -5,7 +5,7 @@
 #include "solver/builder/cardinality.h"
 #include "solver/builder/waerden.h"
 
-TEST(BuilderTest, Cardinality) {
+TEST(BuilderTest, CardinalityExactlyOne) {
   for (int n = 3; n <= 100; ++n) {
     solver::algorithm::Nop solver;
     std::vector<solver::Lit> x;

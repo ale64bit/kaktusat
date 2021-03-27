@@ -4,4 +4,5 @@ cc_library(
     name = "solver",
     srcs = ["solver.cpp"],
     hdrs = ["solver.h"],
+    deps = ["//util"],
 )
