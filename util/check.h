@@ -8,8 +8,7 @@
   do {                                                                         \
     if (!(condition)) {                                                        \
       std::cerr << __FILE__ << ":" << __LINE__                                 \
-                << ": invariant violated: '" #condition "': " << (msg)         \
-                << std::endl;                                                  \
+                << ": check failed: '" #condition "': " << (msg) << std::endl; \
       std::abort();                                                            \
     }                                                                          \
   } while (false)

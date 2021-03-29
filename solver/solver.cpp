@@ -29,7 +29,8 @@ Var Solver::NewTempVar(std::string prefix) {
   while (nameToVar_.count(prefix + "__" + std::to_string(tmpID_))) {
     ++tmpID_;
   }
-  return NewVar(prefix + "__" + std::to_string(tmpID_++));
+  std::string name = prefix + "__" + std::to_string(tmpID_++);
+  return NewVar(name);
 }
 
 Var Solver::NewVar(std::string name) {

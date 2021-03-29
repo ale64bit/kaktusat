@@ -1,23 +1,19 @@
 #include "solver/builder/cardinality.h"
 
-#include <iostream>
+#include "util/check.h"
 
 namespace solver {
 namespace builder {
 
-void ExactlyOne(Solver &solver, const std::vector<Lit> &y, Mode mode) {
-  AtLeastOne(solver, y, mode);
-  AtMostOne(solver, y, mode);
-}
-
 void AtLeastOne(Solver &solver, const std::vector<Lit> &y, Mode) {
+  CHECK("There must be at least one literal", !y.empty());
   solver.AddClause(y);
 }
 
 /*
  * Simple implementation: for each pair x and y, one of them must be false.
  *
- * It doesn't use new variables, but generates O(|y|^2) binary clauses.
+ * It doesn't use additional variables, but generates O(|y|^2) binary clauses.
  *
  * @see: 7.2.2.2 - p6
  */
@@ -28,7 +24,6 @@ static void AtMostOneSimple(Solver &solver, const std::vector<Lit> &y) {
     }
   }
 }
-
 /*
  * Generates less clauses, at the expense of more variables.
  *
@@ -77,7 +72,13 @@ void AtMostOne(Solver &solver, const std::vector<Lit> &y, Mode mode) {
   }
 }
 
+void ExactlyOne(Solver &solver, const std::vector<Lit> &y, Mode mode) {
+  AtLeastOne(solver, y, mode);
+  AtMostOne(solver, y, mode);
+}
+
 void AtLeast(Solver &solver, const std::vector<Lit> &x, int r) {
+  CHECK("There must be at least r literals", r <= (int)x.size());
   const int n = (int)x.size();
   std::vector<Lit> y;
   for (const auto &xi : x) {
@@ -86,7 +87,15 @@ void AtLeast(Solver &solver, const std::vector<Lit> &x, int r) {
   return AtMost(solver, y, n - r);
 }
 
-// Sinz's method.
+/*
+ * Sinz C. (2005) Towards an Optimal CNF Encoding of Boolean Cardinality
+ * Constraints. In: van Beek P. (eds) Principles and Practice of Constraint
+ * Programming - CP 2005. CP 2005. Lecture Notes in Computer Science, vol 3709.
+ * Springer, Berlin, Heidelberg. https://doi.org/10.1007/11564751_73
+ *
+ * @see: 7.2.2.2 - p8
+ * @see: 7.2.2.2 - exercise 26, p135
+ */
 void AtMostMethod1(Solver &solver, const std::vector<Lit> &x, int r) {
   const int n = (int)x.size();
 
@@ -125,8 +134,86 @@ void AtMostMethod1(Solver &solver, const std::vector<Lit> &x, int r) {
   }
 }
 
+/*
+ * Bailleux O., Boufkhad Y. (2003) Efficient CNF Encoding of Boolean Cardinality
+ * Constraints. In: Rossi F. (eds) Principles and Practice of Constraint
+ * Programming – CP 2003. CP 2003. Lecture Notes in Computer Science, vol 2833.
+ * Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-540-45193-8_8
+ *
+ * @see: 7.2.2.2 - p8
+ * @see: 7.2.2.2 - exercise 27, p135
+ */
+void AtMostMethod2(Solver &solver, const std::vector<Lit> &x, int r) {
+  const int n = (int)x.size();
+
+  // Calculate leaf counts.
+  //   * internal nodes are 1..n-1
+  //   * leaves are n..2n-1
+  std::vector<int> t(2 * n);
+
+  for (int k = n; k < 2 * n; ++k) {
+    t[k] = 1;
+  }
+  for (int k = n - 1; k >= 1; --k) {
+    t[k] = std::min(r, t[2 * k] + t[2 * k + 1]);
+  }
+
+  // Create new variables.
+  std::vector<std::vector<Lit>> b(2 * n);
+  for (int k = 2; k < 2 * n; ++k) {
+    for (int j = 1; j <= t[k]; ++j) {
+      if (k < n) {
+        b[k].push_back(solver.NewTempVar("b" + std::to_string(j) + "_" +
+                                         std::to_string(k)));
+      } else {
+        b[k].push_back(x[k - n]);
+      }
+    }
+  }
+
+  // Add constraints on internal nodes.
+  for (int k = 2; k < n; ++k) {
+    for (int i = 0; i <= t[2 * k]; ++i) {
+      for (int j = 0; j <= t[2 * k + 1] && i + j <= t[k] + 1; ++j) {
+        if (i == 0 && j == 0)
+          continue;
+
+        std::vector<Lit> clause;
+        if (1 <= i + j && i + j <= t[k])
+          clause.emplace_back(b[k][i + j - 1]);
+        if (1 <= i && i <= t[2 * k])
+          clause.emplace_back(~b[2 * k][i - 1]);
+        if (1 <= j && j <= t[2 * k + 1])
+          clause.emplace_back(~b[2 * k + 1][j - 1]);
+        solver.AddClause(clause);
+      }
+    }
+  }
+
+  // Add boundary conditions.
+  for (int i = 0; i <= t[2]; ++i) {
+    int j = r + 1 - i;
+    if (0 <= j && j <= t[3]) {
+      std::vector<Lit> clause;
+      if (1 <= i && i <= t[2])
+        clause.emplace_back(~b[2][i - 1]);
+      if (1 <= j && j <= t[3])
+        clause.emplace_back(~b[3][j - 1]);
+      solver.AddClause(clause);
+    }
+  }
+}
+
 void AtMost(Solver &solver, const std::vector<Lit> &x, int r) {
-  AtMostMethod1(solver, x, r);
+  CHECK("There must be at least r literals", r <= (int)x.size());
+  // AtMostMethod1(solver, x, r);
+  AtMostMethod2(solver, x, r);
+}
+
+void Exactly(Solver &solver, const std::vector<Lit> &x, int r) {
+  CHECK("There must be at least r literals", r <= (int)x.size());
+  AtLeast(solver, x, r);
+  AtMost(solver, x, r);
 }
 
 } // namespace builder
