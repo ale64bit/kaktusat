@@ -18,11 +18,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-#ifdef NDEBUG
-  std::ofstream devNull("/dev/null");
-  std::clog.rdbuf(devNull.rdbuf());
-#endif
-
   std::string solverID(argv[1]);
   std::string dir(argv[2]);
 

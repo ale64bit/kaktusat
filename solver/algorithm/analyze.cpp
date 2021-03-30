@@ -1,9 +1,10 @@
 #include "solver/algorithm/analyze.h"
 
 #include <iomanip>
-#include <iostream>
 #include <map>
 #include <set>
+
+#include "util/log.h"
 
 namespace solver {
 namespace algorithm {
@@ -42,46 +43,42 @@ std::pair<Result, std::vector<Lit>> Analyze::Solve() {
     ++clauseIndex;
   }
 
-  std::clog << "N=" << NumVars() << " M=" << NumClauses() << '\n';
+  LOG << "N=" << NumVars() << " M=" << NumClauses();
 
-  std::clog << "Clause-to-variable ratio: " << std::fixed
-            << std::setprecision(3)
-            << static_cast<double>(NumClauses()) / NumVars() << '\n';
+  LOG << "Clause-to-variable ratio: " << std::fixed << std::setprecision(3)
+      << static_cast<double>(NumClauses()) / NumVars();
 
-  std::clog << "Pure literals: ";
+  LOG << "Pure literals: ";
   for (int i = 1; i <= NumVars(); ++i) {
     Var x(i);
     if (litSeen.count(x) && !litSeen.count(~x)) {
-      std::clog << ToString(x) << ' ';
+      LOG << ToString(x) << ' ';
     } else if (!litSeen.count(x) && litSeen.count(~x)) {
-      std::clog << ToString(~x) << ' ';
+      LOG << ToString(~x) << ' ';
     }
   }
-  std::clog << '\n';
 
   if (clauseLenCnt.count(0)) {
-    std::clog
-        << "Instance contains empty clause, so it's trivially unsatisfiable"
-        << '\n';
+    LOG << "Instance contains empty clause, so it's trivially unsatisfiable";
   }
 
   if (!repeated.empty()) {
-    std::clog << "Clauses with repeated literals:\n";
+    LOG << "Clauses with repeated literals:";
     for (const auto &[i, clause] : repeated) {
-      std::clog << "\t" << i << ": " << ToString(clause) << '\n';
+      LOG << "\t" << i << ": " << ToString(clause);
     }
   }
 
   if (!tautologies.empty()) {
-    std::clog << "Tautologies:\n";
+    LOG << "Tautologies:";
     for (const auto &[i, clause] : tautologies) {
-      std::clog << "\t" << i << ": " << ToString(clause) << '\n';
+      LOG << "\t" << i << ": " << ToString(clause);
     }
   }
 
-  std::clog << "Clause length counts:" << '\n';
+  LOG << "Clause length counts:";
   for (const auto &[len, cnt] : clauseLenCnt) {
-    std::clog << "\t" << len << ": " << cnt << '\n';
+    LOG << "\t" << len << ": " << cnt;
   }
 
   return {Result::kUnknown, {}};

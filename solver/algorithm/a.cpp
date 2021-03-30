@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <iostream>
 
 #include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace algorithm {
@@ -72,11 +72,7 @@ A2: // Choose.
     ++l;
   }
   m[d] = (l & 1) + 4 * (C[l ^ 1] == 0);
-  std::clog << "A2: choose l=" << ToString(Lit(l)) << " a=" << a << " m=";
-  for (int j = 1; j <= d; ++j) {
-    std::clog << m[j];
-  }
-  std::clog << std::endl;
+  LOG << "A2: choose l=" << ToString(Lit(l)) << " a=" << a;
 
   if (C[l] == a) {
     std::vector<Lit> ret;
@@ -94,21 +90,19 @@ A3: // Remove ~l.
     if (SIZE[j] == 1) { // Makes a clause empty, so we need to restore it.
       for (int q = B[p]; q > 2 * n + 1; q = B[q]) {
         j = C[q];
-        std::clog << "A3: unremove " << ToString(Lit(l ^ 1)) << " from clause "
-                  << j << std::endl;
+        LOG << "A3: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j;
         ++SIZE[j];
       }
       goto A5;
     }
-    std::clog << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause " << j
-              << std::endl;
+    LOG << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause " << j;
     --SIZE[j];
   }
 
 A4: // Deactivate l's clauses.
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
     int j = C[p];
-    std::clog << "A4: deactivate clause " << j << std::endl;
+    LOG << "A4: deactivate clause " << j;
     for (int i = 0; i < SIZE[j] - 1; ++i) {
       int s = START[j] + i;
       CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
@@ -130,7 +124,7 @@ A5: // Try again.
   if (m[d] < 2) {
     m[d] = 3 - m[d];
     l = 2 * d + (m[d] & 1);
-    std::clog << "A5: try again: l=" << ToString(Lit(l)) << '\n';
+    LOG << "A5: try again: l=" << ToString(Lit(l)) << '\n';
     goto A3;
   }
 
@@ -140,7 +134,7 @@ A6: // Backtrack.
   } else {
     --d;
     l = 2 * d + (m[d] & 1);
-    std::clog << "A6: backtrack: l=" << ToString(Lit(l)) << '\n';
+    LOG << "A6: backtrack: l=" << ToString(Lit(l)) << '\n';
   }
 
 A7: // Reactivate l's clauses.
@@ -149,7 +143,7 @@ A7: // Reactivate l's clauses.
   // symmetry.
   for (int p = F[l]; p > 2 * n + 1; p = F[p]) {
     int j = C[p];
-    std::clog << "A7: reactivate clause " << j << std::endl;
+    LOG << "A7: reactivate clause " << j;
     for (int i = 0; i < SIZE[j] - 1; ++i) {
       int s = START[j] + i;
       CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
@@ -167,8 +161,7 @@ A8: // Unremove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
     CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
     int j = C[p];
-    std::clog << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j
-              << std::endl;
+    LOG << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j;
     ++SIZE[j];
     CHECK("last literal must match the unremoved literal",
           L[START[j] + SIZE[j] - 1] == (l ^ 1));

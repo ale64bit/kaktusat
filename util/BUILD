@@ -2,5 +2,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "util",
-    hdrs = ["check.h"],
+    srcs = ["log.cpp"],
+    hdrs = [
+        "check.h",
+        "log.h",
+    ],
 )

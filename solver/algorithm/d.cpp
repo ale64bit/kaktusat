@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <iostream>
 
 #include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace algorithm {
@@ -67,8 +67,7 @@ D1: // Initialize.
     x[i] = -1;
     // If a variable is watched, add it to the ring.
     if ((W[2 * i] != 0) || (W[2 * i + 1] != 0)) {
-      std::clog << "D1: variable " << ToString(Var(i)) << " added to ring"
-                << std::endl;
+      LOG << "D1: variable " << ToString(Var(i)) << " added to ring";
       NEXT[i] = head;
       head = i;
       if (tail == 0) {
@@ -129,21 +128,21 @@ D3: // Look for unit clauses.
     break;
   case 1: // 2head is unit
   case 2: // 2head+1 is unit
-    std::clog << "D3: variable " << ToString(Var(head))
-              << " has unit clauses: f=" << f << std::endl;
+    LOG << "D3: variable " << ToString(Var(head))
+        << " has unit clauses: f=" << f;
     m[d + 1] = f + 3;
     tail = k;
     goto D5;
   case 3: // both are unit
-    std::clog << "D3: variable " << ToString(Var(head))
-              << " has both types of unit clauses" << std::endl;
+    LOG << "D3: variable " << ToString(Var(head))
+        << " has both types of unit clauses";
     goto D7;
   }
 
 D4: // Two-way branch.
   head = NEXT[tail];
   m[d + 1] = (W[2 * head] == 0) || (W[2 * head + 1] != 0);
-  std::clog << "D4: two-way branch with " << ToString(Var(head)) << std::endl;
+  LOG << "D4: two-way branch with " << ToString(Var(head));
 
 D5: // Move on.
   CHECK("head must be a valid variable", 1 <= head && head <= NumVars());
@@ -154,9 +153,8 @@ D5: // Move on.
   } else {
     NEXT[tail] = head = NEXT[k];
   }
-  std::clog << "D5: choose " << ToString(Lit(2 * k + (m[d] & 1)))
-            << " and delete " << ToString(Var(k)) << " from the ring"
-            << std::endl;
+  LOG << "D5: choose " << ToString(Lit(2 * k + (m[d] & 1))) << " and delete "
+      << ToString(Var(k)) << " from the ring";
 
 D6: // Update watches.
   x[k] = (m[d] + 1) & 1;
@@ -175,14 +173,13 @@ D6: // Update watches.
     // Update the watchee for clause j.
     int ll = L[ii]; // this is the new watched literal.
     int jj = j;
-    std::clog << "D6: clause " << j << " is now watching " << ToString(Lit(ll))
-              << std::endl;
+    LOG << "D6: clause " << j << " is now watching " << ToString(Lit(ll));
+
     // If the watch lists for the newly watched variable become non-empty,
     // we add the variable to the ring first.
     if (x[ll >> 1] == -1 && W[ll] == 0 && W[ll ^ 1] == 0) {
       int y = ll >> 1;
-      std::clog << "D6: variable " << ToString(Var(y)) << " added to ring"
-                << std::endl;
+      LOG << "D6: variable " << ToString(Var(y)) << " added to ring";
       if (tail == 0) {
         head = tail = y;
       } else {
@@ -211,8 +208,7 @@ D7: // Backtrack.
       NEXT[k] = head;
       head = k;
       NEXT[tail] = head;
-      std::clog << "D7: variable " << ToString(Var(k)) << " added to ring"
-                << std::endl;
+      LOG << "D7: variable " << ToString(Var(k)) << " added to ring";
     }
     --d;
   }
@@ -222,8 +218,7 @@ D8: // Failure?
     m[d] = 3 - m[d];
     k = h[d];
     CHECK("Switched variable must still be set", x[k] != -1);
-    std::clog << "D8: variable " << ToString(Var(k)) << " switched"
-              << std::endl;
+    LOG << "D8: variable " << ToString(Var(k)) << " switched";
     goto D6;
   } else {
     return {Result::kUNSAT, {}};
