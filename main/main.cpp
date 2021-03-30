@@ -14,6 +14,7 @@
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/nop.h"
 #include "solver/algorithm/z.h"
+#include "solver/builder/dimacs.h"
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {

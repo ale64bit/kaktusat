@@ -11,6 +11,7 @@
 #include "solver/builder/cardinality.h"
 #include "solver/builder/coloring.h"
 #include "solver/builder/langford.h"
+#include "solver/builder/partial_order.h"
 #include "solver/builder/simple.h"
 #include "solver/builder/waerden.h"
 
@@ -74,6 +75,7 @@ std::vector<BuildFn> AllUNSATBuilders() {
         solver::builder::AtLeast(s, x, 4);
         solver::builder::AtMost(s, x, 3);
       },
+      [](solver::Solver &s) { solver::builder::ImpossiblePartialOrder(s, 3); },
   };
 }
 
