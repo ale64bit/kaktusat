@@ -7,13 +7,13 @@ namespace solver {
 namespace builder {
 
 /*
- * Instance builder for an impossible partial order on m elements.
+ * Instance builder for pigeonhole principle for m+1 elements.
  *
  * Always unsatisfiable. Useful for refutation experiments.
  *
- * @see: 7.2.2.2 - (99), (100), (101) - p56
+ * @see: 7.2.2.2 - (106), (107) - p57
  */
-void ImpossiblePartialOrder(Solver &, int);
+void Pigeonhole(Solver &, int m);
 
 } // namespace builder
 } // namespace solver
