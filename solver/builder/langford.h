@@ -9,8 +9,6 @@ namespace builder {
 /*
  * Instance builder for Langford's pairs problem.
  *
- * Resets solver: NO
- *
  * @see: https://en.wikipedia.org/wiki/Langford_pairing
  * @see: 7.2.2.2 - (11), p5
  */

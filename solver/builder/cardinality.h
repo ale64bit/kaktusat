@@ -28,7 +28,6 @@ void AtMostOne(Solver &, const std::vector<Lit> &, Mode = Mode::kLessVariables);
  *
  * The input literals must be on existing variables.
  *
- * Resets solver: NO
  * Number of variables: n
  * Number of clauses: m+O(k^2) where k is the number of given literals.
  */
@@ -38,14 +37,16 @@ void ExactlyOne(Solver &, const std::vector<Lit> &,
 /*
  * Constraints given literals so that at least r of them can be true.
  *
- * The input literals must be on existing variables.
+ * The input literals must be on existing variables. The generated clauses
+ * contain at most 3 literals.
  */
 void AtLeast(Solver &, const std::vector<Lit> &, int r);
 
 /*
  * Constraints given literals so that at most r of them can be true.
  *
- * The input literals must be on existing variables.
+ * The input literals must be on existing variables. The generated clauses
+ * contain at most 3 literals.
  */
 void AtMost(Solver &, const std::vector<Lit> &, int r);
 

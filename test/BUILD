@@ -22,6 +22,19 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "transform_test",
+    srcs = [
+        "transform_test.cpp",
+    ],
+    deps = [
+        "//solver/algorithm",
+        "//solver/builder",
+        "//solver/transform",
+        "@gtest//:gtest_main",
+    ],
+)
+
 cc_binary(
     name = "stress",
     srcs = ["stress.cpp"],

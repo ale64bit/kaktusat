@@ -61,8 +61,8 @@ public:
   void AddClause(std::vector<Lit>);
   int NumVars() const { return n_; }
   int NumClauses() const { return static_cast<int>(clauses_.size()); }
-  std::vector<std::string> GetVars() const;
-  std::vector<std::vector<Lit>> GetClauses() const;
+  const std::vector<std::string> &GetVarNames() const;
+  const std::vector<std::vector<Lit>> &GetClauses() const;
   void Reset();
   bool Verify(const std::vector<Lit> &, std::string * = nullptr) const;
   std::string ToString(Var) const;
