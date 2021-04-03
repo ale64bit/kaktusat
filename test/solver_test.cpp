@@ -11,6 +11,7 @@
 #include "solver/builder/cardinality.h"
 #include "solver/builder/coloring.h"
 #include "solver/builder/langford.h"
+#include "solver/builder/mutilated_chessboard.h"
 #include "solver/builder/partial_order.h"
 #include "solver/builder/pigeonhole.h"
 #include "solver/builder/simple.h"
@@ -79,6 +80,8 @@ std::vector<BuildFn> AllUNSATBuilders() {
       [](solver::Solver &s) { solver::builder::ImpossiblePartialOrder(s, 3); },
       [](solver::Solver &s) { solver::builder::Pigeonhole(s, 3); },
       [](solver::Solver &s) { solver::builder::Pigeonhole(s, 4); },
+      [](solver::Solver &s) { solver::builder::MutilatedChessboard(s, 4); },
+      [](solver::Solver &s) { solver::builder::MutilatedChessboard(s, 5); },
   };
 }
 

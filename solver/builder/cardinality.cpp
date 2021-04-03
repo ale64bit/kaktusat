@@ -101,7 +101,7 @@ void AtMostMethod1(Solver &solver, const std::vector<Lit> &x, int r) {
 
   // Create additional variables.
 
-  // s(k,j) : 1<=k<=r, 1<=j<=n-r
+  // s(k,j) : 1 <= k <= r, 1 <= j <= n-r
   std::vector<std::vector<Var>> s(r);
   for (int k = 1; k <= r; ++k) {
     for (int j = 1; j <= n - r; ++j) {

@@ -17,6 +17,7 @@ TEST(TransformTest, Monotonic) {
     for (const auto &l : clause) {
       has[l.IsNeg()] = true;
     }
+    EXPECT_GT(clause.size(), 0);
     EXPECT_FALSE(has[false] && has[true]);
   }
 }
@@ -27,6 +28,7 @@ TEST(TransformTest, SAT3) {
   solver::transform::SAT3(solver);
 
   for (const auto &clause : solver.GetClauses()) {
+    EXPECT_GT(clause.size(), 0);
     EXPECT_LE(clause.size(), 3);
   }
 }

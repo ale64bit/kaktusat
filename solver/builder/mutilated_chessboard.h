@@ -7,14 +7,13 @@ namespace solver {
 namespace builder {
 
 /*
- * Instance builder for pigeonhole principle for m+1 elements.
+ * Instance builder for mutilated chessboard problem of size n.
  *
  * Always unsatisfiable. Useful for refutation experiments.
  *
- * @see: https://en.wikipedia.org/wiki/Pigeonhole_principle
- * @see: 7.2.2.2 - (106), (107) - p57
+ * @see: https://en.wikipedia.org/wiki/Mutilated_chessboard_problem
  */
-void Pigeonhole(Solver &, int m);
+void MutilatedChessboard(Solver &, int n);
 
 } // namespace builder
 } // namespace solver

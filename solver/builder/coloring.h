@@ -28,7 +28,7 @@ namespace graph {
 /* Some predefined small graph examples. */
 GraphEdges Petersen();
 GraphEdges McGregor3();
-}; // namespace graph
+} // namespace graph
 
 } // namespace builder
 } // namespace solver
