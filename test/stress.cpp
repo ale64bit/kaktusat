@@ -1,5 +1,7 @@
+#include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <string>
@@ -8,6 +10,7 @@
 #include "solver/algorithm/a2.h"
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
+#include "solver/algorithm/i0.h"
 #include "solver/builder/dimacs.h"
 
 namespace fs = std::filesystem;
@@ -26,6 +29,7 @@ int main(int argc, char *argv[]) {
   solvers["A2"] = std::make_unique<solver::algorithm::A2>();
   solvers["B"] = std::make_unique<solver::algorithm::B>();
   solvers["D"] = std::make_unique<solver::algorithm::D>();
+  solvers["I0"] = std::make_unique<solver::algorithm::I0>();
 
   if (solvers.count(solverID) == 0) {
     std::cout << "unknown algorithm: " << solverID << std::endl;
@@ -35,6 +39,7 @@ int main(int argc, char *argv[]) {
   auto &solver = *solvers[solverID];
 
   int cnt = 1;
+  double total = 0;
   for (const auto &p : fs::directory_iterator(dir)) {
     if (p.path().extension() != ".cnf") {
       continue;
@@ -45,7 +50,10 @@ int main(int argc, char *argv[]) {
       std::cerr << "Reading instance: " << err << std::endl;
       return 1;
     }
+    auto start = std::chrono::system_clock::now();
     auto [res, sol] = solver.Solve();
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end - start;
     if (res != solver::Result::kSAT) {
       std::cerr << cnt << ": " << p.path() << ": bad result" << '\n';
       return 1;
@@ -56,8 +64,11 @@ int main(int argc, char *argv[]) {
                 << '\n';
       return 1;
     }
-    std::cout << cnt << ": " << p.path() << " : ok " << '\n';
+    std::cout << cnt << ": " << p.path() << " : ok in " << std::fixed
+              << std::setprecision(3) << diff.count() << " sec" << '\n';
+    total += diff.count();
     ++cnt;
   }
-  std::cout << "all ok" << std::endl;
+  std::cout << "all ok in " << std::fixed << std::setprecision(3) << total
+            << " sec" << std::endl;
 }

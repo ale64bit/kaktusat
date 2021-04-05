@@ -36,7 +36,8 @@ public:
   Lit operator~() const;
   Var V() const;
   int ID() const { return l; }
-  bool IsNeg() const { return (l & 1); }
+  bool IsPos() const { return (l & 1) == 0; }
+  bool IsNeg() const { return (l & 1) != 0; }
 
 private:
   int l;

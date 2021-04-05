@@ -8,6 +8,7 @@ cc_library(
         ":analyze",
         ":b",
         ":d",
+        ":i0",
         ":nop",
         ":z",
     ],
@@ -54,6 +55,16 @@ cc_library(
     name = "d",
     srcs = ["d.cpp"],
     hdrs = ["d.h"],
+    deps = [
+        "//solver",
+        "//util",
+    ],
+)
+
+cc_library(
+    name = "i0",
+    srcs = ["i0.cpp"],
+    hdrs = ["i0.h"],
     deps = [
         "//solver",
         "//util",

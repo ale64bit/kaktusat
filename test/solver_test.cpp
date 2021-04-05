@@ -7,6 +7,7 @@
 #include "solver/algorithm/a2.h"
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
+#include "solver/algorithm/i0.h"
 #include "solver/algorithm/z.h"
 #include "solver/builder/cardinality.h"
 #include "solver/builder/coloring.h"
@@ -25,6 +26,7 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   solvers.emplace_back(new solver::algorithm::A2());
   solvers.emplace_back(new solver::algorithm::B());
   solvers.emplace_back(new solver::algorithm::D());
+  solvers.emplace_back(new solver::algorithm::I0());
   // solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }
