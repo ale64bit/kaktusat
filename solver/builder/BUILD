@@ -4,8 +4,10 @@ cc_library(
     name = "builder",
     srcs = [
         "cardinality.cpp",
+        "circuit.cpp",
         "coloring.cpp",
         "dimacs.cpp",
+        "factor.cpp",
         "langford.cpp",
         "mutilated_chessboard.cpp",
         "partial_order.cpp",
@@ -17,8 +19,10 @@ cc_library(
     hdrs = [
         "builder.h",
         "cardinality.h",
+        "circuit.h",
         "coloring.h",
         "dimacs.h",
+        "factor.h",
         "langford.h",
         "mutilated_chessboard.h",
         "partial_order.h",

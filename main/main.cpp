@@ -48,27 +48,27 @@ int main(int argc, char *argv[]) {
   auto &solver = *solvers[solverID];
 
   {
-    LOG << "reading instance from DIMACS file...";
+    COMMENT << "reading instance from DIMACS file: " << path;
     auto start = std::chrono::system_clock::now();
     auto err = solver::builder::FromDimacsFile(solver, path);
     if (!err.empty()) {
-      LOG << "reading instance: " << err;
+      LOG << "error while reading instance: " << err;
       return 1;
     }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
-    LOG << "instance built in " << std::fixed << std::setprecision(3)
-        << diff.count() << " secs";
+    COMMENT << "instance read in " << std::fixed << std::setprecision(3)
+            << diff.count() << " secs";
   }
 
   {
-    LOG << "solving with Algorithm " << solverID << "...";
+    COMMENT << "solving with Algorithm " << solverID;
     auto start = std::chrono::system_clock::now();
     auto [res, sol] = solver.Solve();
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
-    LOG << "finished in " << std::fixed << std::setprecision(3) << diff.count()
-        << " secs";
+    COMMENT << "finished in " << std::fixed << std::setprecision(3)
+            << diff.count() << " secs";
 
     LOG << "instance: " << solver.ToString();
     std::string errMsg;
@@ -76,14 +76,12 @@ int main(int argc, char *argv[]) {
     case solver::Result::kSAT:
       RESULT << "SATISFIABLE";
       for (size_t i = 0; i < sol.size(); i += kValuesPerLine) {
-        VALUES << '\t'
-               << solver.ToString(
-                      std::vector(sol.begin() + i,
-                                  sol.begin() +
-                                      std::min(sol.size(), i + kValuesPerLine)),
-                      " ", true);
+        VALUES << solver.ToString(
+            std::vector(sol.begin() + i,
+                        sol.begin() + std::min(sol.size(), i + kValuesPerLine)),
+            " ", true);
       }
-      VALUES << '\t' << 0;
+      VALUES << 0;
       LOG << "solution: [" << solver.ToString(sol) << "]";
       if (!solver.Verify(sol, &errMsg)) {
         LOG << "verify: " << errMsg;
@@ -102,5 +100,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  COMMENT << "done";
   return 0;
 }
