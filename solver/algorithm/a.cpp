@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#include "util/check.h"
 #include "util/log.h"
 
 namespace solver {
@@ -65,8 +64,7 @@ A1: // Initialize.
   int l;                // chosen literal.
 
 A2: // Choose.
-  CHECK("depth must be 1 <= d <= n, so that we can turn it into a literal",
-        1 <= d && d <= n);
+  CHECK(1 <= d && d <= n) << "depth must be 1 <= d <= n, got d=" << d;
   l = 2 * d;
   if (C[l] <= C[l + 1]) {
     ++l;
@@ -85,7 +83,8 @@ A2: // Choose.
 
 A3: // Remove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    CHECK(p > 2 * n + 1)
+        << "every visited cell must be a non-special cell, got p=" << p;
     int j = C[p];
     if (SIZE[j] == 1) { // Makes a clause empty, so we need to restore it.
       for (int q = B[p]; q > 2 * n + 1; q = B[q]) {
@@ -105,7 +104,7 @@ A4: // Deactivate l's clauses.
     LOG << "A4: deactivate clause " << j;
     for (int i = 0; i < SIZE[j] - 1; ++i) {
       int s = START[j] + i;
-      CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
+      CHECK(L[s] != l) << "updated counts cannot refer to the chosen literal";
       // Remove the literal cell.
       // ... r=B[s] <- s -> q=F[s] ...
       int r = B[s];
@@ -146,7 +145,7 @@ A7: // Reactivate l's clauses.
     LOG << "A7: reactivate clause " << j;
     for (int i = 0; i < SIZE[j] - 1; ++i) {
       int s = START[j] + i;
-      CHECK("updated counts cannot refer to the chosen literal", L[s] != l);
+      CHECK(L[s] != l) << "updated counts cannot refer to the chosen literal";
       // Restore the literal cell.
       // ... r=B[s] <- s -> q=F[s] ...
       int r = B[s];
@@ -159,12 +158,14 @@ A7: // Reactivate l's clauses.
 
 A8: // Unremove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    CHECK(p > 2 * n + 1)
+        << "every visited cell must be a non-special cell, got p=" << p;
     int j = C[p];
     LOG << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j;
     ++SIZE[j];
-    CHECK("last literal must match the unremoved literal",
-          L[START[j] + SIZE[j] - 1] == (l ^ 1));
+    CHECK(L[START[j] + SIZE[j] - 1] == (l ^ 1))
+        << "last literal must match the unremoved literal, got "
+        << ToString(Lit(L[START[j] + SIZE[j] - 1]));
   }
   goto A5;
 }

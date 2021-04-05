@@ -6,7 +6,7 @@
 namespace solver {
 
 Var::Var(int x) : x(x) {
-  CHECK("Variable representation must be positive.", x > 0);
+  CHECK(x > 0) << "variable representation must be positive, got x=" << x;
 }
 bool Var::operator==(const Var &that) const { return this->x == that.x; }
 bool Var::operator!=(const Var &that) const { return this->x != that.x; }
@@ -15,7 +15,7 @@ Var::operator Lit() const { return Lit(2 * x); }
 Lit Var::operator~() const { return Lit(2 * x + 1); }
 
 Lit::Lit(int l) : l(l) {
-  CHECK("Literal representation must be positive.", l > 0);
+  CHECK(l > 0) << "literal representation must be positive, got l=" << l;
 }
 bool Lit::operator==(const Lit &that) const { return this->l == that.l; }
 bool Lit::operator!=(const Lit &that) const { return this->l != that.l; }
@@ -34,7 +34,8 @@ Var Solver::NewTempVar(std::string prefix) {
 }
 
 Var Solver::NewVar(std::string name) {
-  CHECK("Variable names must be unique", nameToVar_.count(name) == 0);
+  CHECK(nameToVar_.count(name) == 0)
+      << "duplicate variable name '" << name << "'";
   name_.push_back(name);
   ++n_;
   Var x(n_);
@@ -51,7 +52,7 @@ Var Solver::NewOrGetVar(std::string name) {
 }
 
 Var Solver::GetVar(std::string name) const {
-  CHECK("Variable name must exist", nameToVar_.count(name) > 0);
+  CHECK(nameToVar_.count(name) > 0) << "unknown variable name '" << name << "'";
   return nameToVar_.at(name);
 }
 
@@ -110,16 +111,17 @@ std::string Solver::ToString(Lit l) const {
   return (l != l.V()) ? "¬" + s : s;
 }
 
-std::string Solver::ToString(const std::vector<Lit> &lits, bool raw) const {
+std::string Solver::ToString(const std::vector<Lit> &lits, std::string sep,
+                             bool raw) const {
   std::stringstream out;
   bool first = true;
   for (auto l : lits) {
     if (!first) {
-      out << ", ";
+      out << sep;
     }
     first = false;
     if (raw) {
-      out << ((l.ID() & 1) ? "-" : "") << (l.ID() >> 1);
+      out << (l.IsNeg() ? "-" : "") << l.V().ID();
     } else {
       out << ToString(l);
     }

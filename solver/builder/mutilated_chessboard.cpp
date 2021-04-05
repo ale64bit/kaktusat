@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "solver/builder/cardinality.h"
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace builder {
 
 void MutilatedChessboard(Solver &solver, int n) {
-  CHECK("n must be greater than 1", n > 1);
+  CHECK(n > 1) << "n must be greater than 1, got n=" << n;
   constexpr std::array<int, 4> di = {-1, 1, 0, 0};
   constexpr std::array<int, 4> dj = {0, 0, -1, 1};
 

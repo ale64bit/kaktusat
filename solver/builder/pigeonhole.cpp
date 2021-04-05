@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "util/check.h"
-
 namespace solver {
 namespace builder {
 

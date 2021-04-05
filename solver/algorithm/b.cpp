@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#include "util/check.h"
 #include "util/log.h"
 
 namespace solver {
@@ -58,7 +57,9 @@ B2: // Rejoice or choose.
 
 B3: // Remove ~l if possible.
   for (int j = W[l ^ 1]; j != 0;) {
-    CHECK("Clause should be watching ~l", L[START[j]] == (l ^ 1));
+    CHECK(L[START[j]] == (l ^ 1))
+        << "clause " << j << " should be watching " << ToString(Lit(l ^ 1))
+        << ", but it's watching " << ToString(Lit(L[START[j]]));
     int k = 0;
     for (int i = START[j] + 1; i < START[j - 1]; ++i) {
       // if L[i] is unknown or already set to true, we can watch it.

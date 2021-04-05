@@ -1,12 +1,12 @@
 #include "solver/builder/cardinality.h"
 
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace builder {
 
 void AtLeastOne(Solver &solver, const std::vector<Lit> &y, Mode) {
-  CHECK("There must be at least one literal", !y.empty());
+  CHECK(!y.empty()) << "there must be at least one literal";
   solver.AddClause(y);
 }
 
@@ -78,7 +78,8 @@ void ExactlyOne(Solver &solver, const std::vector<Lit> &y, Mode mode) {
 }
 
 void AtLeast(Solver &solver, const std::vector<Lit> &x, int r) {
-  CHECK("There must be at least r literals", r <= (int)x.size());
+  CHECK(r <= (int)x.size())
+      << "there must be at least r=" << r << " literals, got |x|=" << x.size();
   const int n = (int)x.size();
   std::vector<Lit> y;
   for (const auto &xi : x) {
@@ -205,13 +206,15 @@ void AtMostMethod2(Solver &solver, const std::vector<Lit> &x, int r) {
 }
 
 void AtMost(Solver &solver, const std::vector<Lit> &x, int r) {
-  CHECK("There must be at least r literals", r <= (int)x.size());
+  CHECK(r <= (int)x.size())
+      << "there must be at least r=" << r << " literals, got |x|=" << x.size();
   // AtMostMethod1(solver, x, r);
   AtMostMethod2(solver, x, r);
 }
 
 void Exactly(Solver &solver, const std::vector<Lit> &x, int r) {
-  CHECK("There must be at least r literals", r <= (int)x.size());
+  CHECK(r <= (int)x.size())
+      << "there must be at least r=" << r << " literals, got |x|=" << x.size();
   AtLeast(solver, x, r);
   AtMost(solver, x, r);
 }

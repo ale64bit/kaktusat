@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#include "util/check.h"
 #include "util/log.h"
 
 namespace solver {
@@ -61,13 +60,12 @@ A1: // Initialize.
   bool makesClauseEmpty; // whether selecting l makes a clause empty.
 
   auto LastLiteral = [&](int j) {
-    CHECK("clause index out of bounds", 1 <= j && j <= NumClauses());
+    CHECK(1 <= j && j <= NumClauses()) << "clause index out of bounds: " << j;
     return L[START[j] + SIZE[j] - 1];
   };
 
 A2: // Choose.
-  CHECK("depth must be 1 <= d <= n, so that we can turn it into a literal",
-        1 <= d && d <= n);
+  CHECK(1 <= d && d <= n) << "depth must be 1 <= d <= n, got d=" << d;
   l = 2 * d;
   if (C[l] <= C[l + 1]) {
     ++l;
@@ -87,7 +85,8 @@ A2: // Choose.
 A3: // Remove ~l.
   makesClauseEmpty = false;
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    CHECK(p > 2 * n + 1)
+        << "every visited cell must be a non-special cell, got p=" << p;
     int j = C[p];
     if (LastLiteral(j) == (l ^ 1) && SIZE[j] == 1) {
       makesClauseEmpty = true;
@@ -98,12 +97,13 @@ A3: // Remove ~l.
     goto A5;
   }
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    CHECK(p > 2 * n + 1)
+        << "every visited cell must be a non-special cell, got p=" << p;
     int j = C[p];
     if (LastLiteral(j) == (l ^ 1)) {
       LOG << "A3: remove " << ToString(Lit(l ^ 1)) << " from clause " << j;
       --SIZE[j];
-      CHECK("the resulting clause cannot be empty", SIZE[j] > 0);
+      CHECK(SIZE[j] > 0) << "the resulting clause cannot be empty";
     }
   }
 
@@ -113,8 +113,8 @@ A4: // Deactivate l's clauses.
     if (LastLiteral(j) == l) {
       LOG << "A4: deactivate clause " << j;
       for (int i = 0; i < SIZE[j] - 1; ++i) {
-        CHECK("updated counts cannot refer to the chosen literal",
-              L[START[j] + i] != l);
+        CHECK(L[START[j] + i] != l)
+            << "updated counts cannot refer to the chosen literal";
         --C[L[START[j] + i]];
       }
     }
@@ -147,8 +147,8 @@ A7: // Reactivate l's clauses.
     if (LastLiteral(j) == l) {
       LOG << "A7: reactivate clause " << j;
       for (int i = 0; i < SIZE[j] - 1; ++i) {
-        CHECK("updated counts cannot refer to the chosen literal",
-              L[START[j] + i] != l);
+        CHECK(L[START[j] + i] != l)
+            << "updated counts cannot refer to the chosen literal";
         ++C[L[START[j] + i]];
       }
     }
@@ -156,13 +156,15 @@ A7: // Reactivate l's clauses.
 
 A8: // Unremove ~l.
   for (int p = F[l ^ 1]; p > 2 * n + 1; p = F[p]) {
-    CHECK("every visited cell must be a non-special cell", p > 2 * n + 1);
+    CHECK(p > 2 * n + 1)
+        << "every visited cell must be a non-special cell, got p=" << p;
     int j = C[p];
     if (LastLiteral(j) > (l ^ 1)) {
       LOG << "A8: unremove " << ToString(Lit(l ^ 1)) << " from clause " << j;
       ++SIZE[j];
-      CHECK("last literal must match the unremoved literal",
-            LastLiteral(j) == (l ^ 1));
+      CHECK(LastLiteral(j) == (l ^ 1))
+          << "last literal must match the unremoved literal, got "
+          << ToString(Lit(LastLiteral(j)));
     }
   }
   goto A5;

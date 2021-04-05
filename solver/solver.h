@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 
@@ -68,7 +68,8 @@ public:
   bool Verify(const std::vector<Lit> &, std::string * = nullptr) const;
   std::string ToString(Var) const;
   std::string ToString(Lit) const;
-  std::string ToString(const std::vector<Lit> &lits, bool = false) const;
+  std::string ToString(const std::vector<Lit> &lits, std::string sep = ", ",
+                       bool raw = false) const;
   std::string ToString() const;
 
   virtual std::pair<Result, std::vector<Lit>> Solve() = 0;

@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <queue>
 
-#include "util/check.h"
 #include "util/log.h"
 
 namespace solver {
@@ -52,7 +51,9 @@ std::pair<Result, std::vector<Lit>> I0::Solve() {
   // Returns -1 if no clause is satisfied.
   auto FindFalsified = [&](int l) -> int {
     for (int k = W[l ^ 1]; k != -1; k = LINK[k]) {
-      CHECK("clause must be watching l", clauses_[k][0].ID() == (l ^ 1));
+      CHECK(clauses_[k][0].ID() == (l ^ 1))
+          << "clause " << k << " should be watching " << ToString(Lit(l ^ 1))
+          << ", but it's watching " << ToString(clauses_[k][0]);
       bool falsified = true;
       // Try to watch another literal.
       for (int ii = 1; ii < (int)clauses_[k].size(); ++ii) {
@@ -71,29 +72,35 @@ std::pair<Result, std::vector<Lit>> I0::Solve() {
   };
 
   // Updates the watchlists for clauses currently watching ~l.
-  auto UpdateWatches = [&](int l) {
-    for (int k = W[l ^ 1]; k != -1;) {
-      CHECK("clause must be watching l", clauses_[k][0].ID() == (l ^ 1));
-      bool ok = false;
-      // Try to watch another literal.
-      for (int ii = 1; ii < (int)clauses_[k].size(); ++ii) {
-        const int ll = clauses_[k][ii].ID();
-        // If ll is not set, or it's set to a value that makes this clause true.
-        if (x[ll >> 1] == -1 || x[ll >> 1] == (ll & 1)) {
-          int kk = k;
-          k = LINK[k];         // advance k, since this one won't be falsified.
-          W[l ^ 1] = LINK[kk]; // clause k no longer watches l.
-          LINK[kk] = W[ll];    // clause k now watches ll.
-          W[ll] = kk;          // clause k is now the first watching ll.
-          std::swap(clauses_[kk][0], clauses_[kk][ii]);
-          ok = true;
-          break;
+  auto UpdateWatches =
+      [&](int l) {
+        for (int k = W[l ^ 1]; k != -1;) {
+          CHECK(clauses_[k][0].ID() == (l ^ 1))
+              << "clause " << k << " should be watching "
+              << ToString(Lit(l ^ 1)) << ", but it's watching "
+              << ToString(clauses_[k][0]);
+          bool found = false;
+          // Try to watch another literal.
+          for (int ii = 1; ii < (int)clauses_[k].size(); ++ii) {
+            const int ll = clauses_[k][ii].ID();
+            // If ll is not set, or it's set to a value that makes this clause
+            // true.
+            if (x[ll >> 1] == -1 || x[ll >> 1] == (ll & 1)) {
+              int kk = k;
+              k = LINK[k]; // advance k, since this one won't be falsified.
+              W[l ^ 1] = LINK[kk]; // clause k no longer watches l.
+              LINK[kk] = W[ll];    // clause k now watches ll.
+              W[ll] = kk;          // clause k is now the first watching ll.
+              std::swap(clauses_[kk][0], clauses_[kk][ii]);
+              found = true;
+              break;
+            }
+          }
+          CHECK(found) << "clause " << k << " must have an alternative watchee";
         }
-      }
-      CHECK("clause must have an alternative watchee", ok);
-    }
-    CHECK("no clause can be watching ~l afterwards", W[l ^ 1] == -1);
-  };
+        CHECK(W[l ^ 1] == -1)
+            << "no clause can be watching ~l after updating watches";
+      };
 
 I1: // Initialize.
   LOG << "I1: initialize";
@@ -107,7 +114,7 @@ I2: // Advance.
     }
     return {Result::kSAT, sol};
   }
-  CHECK("there must be unset literals available", !q.empty());
+  CHECK(!q.empty()) << "there must be unset literals available";
   ++d;
   l[d] = q.front();
   q.pop();
@@ -137,12 +144,16 @@ I4: // Find falsified C(j).
   LOG << "I4: C(" << j << ") is falsified: " << ToString(clauses_[j]);
 
 I5: // Resolve.
-  CHECK("falsified clause i must be valid", 0 <= i && i < m);
-  CHECK("falsified clause j must be valid", 0 <= j && j < m);
-  CHECK("falsified clause i must be watching l[d]",
-        clauses_[i][0].ID() == l[d]);
-  CHECK("falsified clause j must be watching ~l[d]",
-        clauses_[j][0].ID() == (l[d] ^ 1));
+  CHECK(0 <= i && i < m) << "falsified clause must be valid, got i=" << i;
+  CHECK(0 <= j && j < m) << "falsified clause must be valid, got j=" << j;
+  CHECK(clauses_[i][0].ID() == l[d])
+      << "falsified clause i=" << i << " should be watching "
+      << ToString(Lit(l[d])) << " but it's watching "
+      << ToString(clauses_[i][0]);
+  CHECK(clauses_[j][0].ID() == (l[d] ^ 1))
+      << "falsified clause j=" << j << " should be watching "
+      << ToString(Lit(l[d] ^ 1)) << " but it's watching "
+      << ToString(clauses_[j][0]);
 
   ++m;
   // Resolve C(m) = C(i) ⬦ C(j).
@@ -158,12 +169,13 @@ I5: // Resolve.
   t = -1;
   for (const auto &lit : Cm) {
     const int l = lit.ID();
-    CHECK("all literals on resolved clauses must be decided", x[l >> 1] != -1);
-    CHECK("all literals on resolved clauses must falsify the resolved clause",
-          x[l >> 1] != (l & 1));
+    CHECK(x[l >> 1] != -1)
+        << "all literals on resolved clauses must be decided";
+    CHECK(x[l >> 1] != (l & 1))
+        << "all literals on resolved clauses must falsify the resolved clause";
     t = std::max(t, dec[l >> 1]);
   }
-  CHECK("new depth after resolution must be valid", t != -1);
+  CHECK(t != -1) << "new depth after resolution must be valid";
   LOG << "I5: learned C(" << m - 1 << ")=(" << ToString(Cm) << ") from C(" << i
       << ")=(" << ToString(clauses_[i]) << ") ⬦ C(" << j << ")=("
       << ToString(clauses_[j]) << ")";

@@ -1,6 +1,6 @@
 #include "solver/builder/simple.h"
 
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace builder {

@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace builder {
 
 void ImpossiblePartialOrder(Solver &solver, int m) {
-  CHECK("There must be at least one element", m > 0);
+  CHECK(m > 0) << "there must be at least one element";
 
   std::vector<std::vector<Var>> x(m);
   for (int i = 1; i <= m; ++i) {

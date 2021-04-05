@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -15,6 +16,8 @@
 #include "solver/algorithm/z.h"
 #include "solver/builder/dimacs.h"
 #include "util/log.h"
+
+constexpr size_t kValuesPerLine = 10;
 
 int main(int argc, char *argv[]) {
   util::InitLogging();
@@ -45,45 +48,56 @@ int main(int argc, char *argv[]) {
   auto &solver = *solvers[solverID];
 
   {
-    LOG << "Reading instance from DIMACS file...";
+    LOG << "reading instance from DIMACS file...";
     auto start = std::chrono::system_clock::now();
     auto err = solver::builder::FromDimacsFile(solver, path);
     if (!err.empty()) {
-      LOG << "Reading instance: " << err;
+      LOG << "reading instance: " << err;
       return 1;
     }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
-    LOG << "Instance built in " << std::fixed << std::setprecision(3)
+    LOG << "instance built in " << std::fixed << std::setprecision(3)
         << diff.count() << " secs";
   }
 
   {
-    LOG << "Solving with Algorithm " << solverID << "...";
+    LOG << "solving with Algorithm " << solverID << "...";
     auto start = std::chrono::system_clock::now();
     auto [res, sol] = solver.Solve();
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
-    LOG << "Finished in " << std::fixed << std::setprecision(3) << diff.count()
+    LOG << "finished in " << std::fixed << std::setprecision(3) << diff.count()
         << " secs";
 
-    LOG << "Instance: " << solver.ToString();
+    LOG << "instance: " << solver.ToString();
     std::string errMsg;
     switch (res) {
     case solver::Result::kSAT:
-      LOG << "Result: SAT";
-      LOG << "Solution: [" << solver.ToString(sol) << "]";
+      RESULT << "SATISFIABLE";
+      for (size_t i = 0; i < sol.size(); i += kValuesPerLine) {
+        VALUES << '\t'
+               << solver.ToString(
+                      std::vector(sol.begin() + i,
+                                  sol.begin() +
+                                      std::min(sol.size(), i + kValuesPerLine)),
+                      " ", true);
+      }
+      VALUES << '\t' << 0;
+      LOG << "solution: [" << solver.ToString(sol) << "]";
       if (!solver.Verify(sol, &errMsg)) {
-        LOG << "Verify: " << errMsg;
+        LOG << "verify: " << errMsg;
       } else {
-        LOG << "Verify: OK";
+        LOG << "verify: OK";
       }
       break;
+
     case solver::Result::kUNSAT:
-      LOG << "Result: UNSAT";
+      RESULT << "UNSATISFIABLE";
       break;
+
     case solver::Result::kUnknown:
-      LOG << "Result: UNKNOWN";
+      RESULT << "UNKNOWN";
       break;
     }
   }

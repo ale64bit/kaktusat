@@ -4,14 +4,11 @@
 #include <vector>
 
 #include "solver/builder/cardinality.h"
-#include "util/check.h"
 
 namespace solver {
 namespace transform {
 
 void SAT3(Solver &solver) {
-  const int n = solver.NumVars();
-  const int m = solver.NumClauses();
   std::vector<std::string> names = solver.GetVarNames();
   std::vector<std::vector<Lit>> clauses = solver.GetClauses();
 

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "util/check.h"
+#include "util/log.h"
 
 namespace solver {
 namespace transform {
@@ -36,8 +36,10 @@ void Monotonic(Solver &solver) {
     solver.AddClause(newClause);
   }
 
-  CHECK("Number of variables should be 2n", solver.NumVars() == 2 * n);
-  CHECK("Number of clauses should be m+n", solver.NumClauses() == m + n);
+  CHECK(solver.NumVars() == 2 * n)
+      << "number of variables should be 2n, got " << solver.NumVars();
+  CHECK(solver.NumClauses() == m + n)
+      << "number of clauses should be m+n, got " << solver.NumClauses();
 }
 
 } // namespace transform

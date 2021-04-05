@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#include "util/check.h"
 #include "util/log.h"
 
 namespace solver {
@@ -85,7 +84,7 @@ D2: // Success?
   if (tail == 0) {
     std::vector<Lit> ret;
     for (int j = 1; j <= d; ++j) {
-      CHECK("Each solution literal must have a known value", x[h[j]] != -1);
+      CHECK(x[h[j]] != -1) << "each solution literal must have a known value";
       Var y(h[j]);
       ret.push_back(x[h[j]] ? y : ~y);
     }
@@ -95,13 +94,16 @@ D2: // Success?
 
 D3: // Look for unit clauses.
   head = NEXT[k];
-  CHECK("head must be a valid variable", 1 <= head && head <= NumVars());
+  CHECK(1 <= head && head <= NumVars())
+      << "head must be a valid variable, got head=" << head;
   // Check if variable k is watched by some unit clause.
   f = 0;
   for (int l : {2 * head + 1, 2 * head}) {
     f *= 2;
     for (int j = W[l]; j != 0; j = LINK[j]) {
-      CHECK("Clause j must but currently watching l", L[START[j]] == l);
+      CHECK(L[START[j]] == l)
+          << "clause j=" << j << " should be watching " << ToString(Lit(l))
+          << " but it's watching " << ToString(Lit(L[START[j]]));
       // Check if clause j is unit.
       bool unit = true;
       for (int i = START[j] + 1; i < START[j - 1]; ++i) {
@@ -118,7 +120,7 @@ D3: // Look for unit clauses.
       }
     }
   }
-  CHECK("f must be between 0 and 3", 0 <= f && f <= 3);
+  CHECK(0 <= f && f <= 3) << "f must be between 0 and 3, got f=" << f;
   switch (f) {
   case 0: // neither is unit
     if (head != tail) {
@@ -145,7 +147,8 @@ D4: // Two-way branch.
   LOG << "D4: two-way branch with " << ToString(Var(head));
 
 D5: // Move on.
-  CHECK("head must be a valid variable", 1 <= head && head <= NumVars());
+  CHECK(1 <= head && head <= NumVars())
+      << "head must be a valid variable, got head=" << head;
   ++d;
   h[d] = k = head;
   if (tail == k) {
@@ -159,7 +162,10 @@ D5: // Move on.
 D6: // Update watches.
   x[k] = (m[d] + 1) & 1;
   for (int j = W[2 * k + x[k]]; j != 0;) {
-    CHECK("Clause should be watching ~l", L[START[j]] == (2 * k + x[k]));
+    CHECK(L[START[j]] == (2 * k + x[k]))
+        << "clause " << j << " should be watching "
+        << ToString(Lit(2 * k + x[k])) << " but it's watching "
+        << ToString(Lit(L[START[j]]));
     int ii = 0;
     for (int i = START[j] + 1; i < START[j - 1]; ++i) {
       // if L[i] is not set or already set to true, we can watch it.
@@ -169,7 +175,7 @@ D6: // Update watches.
         break;
       }
     }
-    CHECK("Clause should have an alternative watchee", ii > 0);
+    CHECK(ii > 0) << "clause " << j << " should have an alternative watchee";
     // Update the watchee for clause j.
     int ll = L[ii]; // this is the new watched literal.
     int jj = j;
@@ -200,8 +206,9 @@ D7: // Backtrack.
   tail = k;
   while (m[d] >= 2) {
     k = h[d];
-    CHECK("k must be a valid variable", 1 <= k && k <= NumVars());
-    CHECK("x[k] must be set", x[k] != -1);
+    CHECK(1 <= k && k <= NumVars())
+        << "k must be a valid variable, got k=" << k;
+    CHECK(x[k] != -1) << "x[" << k << "] must be set";
     x[k] = -1;
     // k is now active again, and if watched, it must be added back to the ring.
     if ((W[2 * k] != 0) || (W[2 * k + 1] != 0)) {
@@ -217,7 +224,7 @@ D8: // Failure?
   if (d > 0) {
     m[d] = 3 - m[d];
     k = h[d];
-    CHECK("Switched variable must still be set", x[k] != -1);
+    CHECK(x[k] != -1) << "switched variable k=" << k << " must still be set";
     LOG << "D8: variable " << ToString(Var(k)) << " switched";
     goto D6;
   } else {
