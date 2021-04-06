@@ -15,6 +15,7 @@ cc_library(
         "pigeonhole.cpp",
         "rand.cpp",
         "sample.cpp",
+        "sudoku.cpp",
         "waerden.cpp",
     ],
     hdrs = [
@@ -30,6 +31,7 @@ cc_library(
         "pigeonhole.h",
         "rand.h",
         "sample.h",
+        "sudoku.h",
         "waerden.h",
     ],
     deps = [

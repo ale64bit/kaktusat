@@ -45,7 +45,7 @@ void MutilatedChessboard(Solver &solver, int n) {
         }
       }
       // Each cell must be matched with a neighbor.
-      solver::encoder::ExactlyOne(solver, x[i][j]);
+      ExactlyOne(solver, x[i][j]);
     }
   }
 
