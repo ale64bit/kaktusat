@@ -12,7 +12,7 @@ cc_library(
     ],
     deps = [
         "//solver",
-        "//solver/builder",
+        "//solver/encoder",
         "//util",
     ],
 )

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 
 namespace solver {
 namespace transform {
@@ -17,7 +17,7 @@ void SAT3(Solver &solver) {
     solver.NewVar(name);
   }
   for (auto clause : clauses) {
-    solver::builder::AtLeast(solver, clause, 1);
+    solver::encoder::AtLeast(solver, clause, 1);
   }
 }
 

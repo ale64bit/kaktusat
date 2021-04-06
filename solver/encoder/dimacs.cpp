@@ -1,4 +1,4 @@
-#include "solver/builder/dimacs.h"
+#include "solver/encoder/dimacs.h"
 
 #include <array>
 #include <cassert>
@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 constexpr size_t kMaxLineLen = 1024;
 constexpr size_t kMaxFormatLen = 1024;
@@ -63,5 +63,5 @@ read_clauses:
   return "";
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

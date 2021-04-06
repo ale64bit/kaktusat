@@ -3,17 +3,17 @@
 #include <string>
 #include <vector>
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /* Represents a graph as a list of edges between named vertices. */
 using GraphEdges = std::vector<std::pair<std::string, std::string>>;
 
 /*
- * Instance builder for graph coloring problems.
+ * Instance encoder for graph coloring problems.
  *
  * The resulting instance is satisfiable iff. the underlying graph can be
  * colored using at most d colors. The actual coloring is encoded in the
@@ -30,5 +30,5 @@ GraphEdges Petersen();
 GraphEdges McGregor3();
 } // namespace graph
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

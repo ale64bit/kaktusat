@@ -1,4 +1,4 @@
-#include "solver/builder/rand.h"
+#include "solver/encoder/rand.h"
 
 #include <random>
 #include <set>
@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 // Something simple for now, for testing purposes.
 void Rand(Solver &solver, int n, int m, int k) {
@@ -36,5 +36,5 @@ void Rand(Solver &solver, int n, int m, int k) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

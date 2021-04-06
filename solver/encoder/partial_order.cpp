@@ -1,4 +1,4 @@
-#include "solver/builder/partial_order.h"
+#include "solver/encoder/partial_order.h"
 
 #include <string>
 #include <vector>
@@ -6,7 +6,7 @@
 #include "util/log.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void ImpossiblePartialOrder(Solver &solver, int m) {
   CHECK(m > 0) << "there must be at least one element";
@@ -47,5 +47,5 @@ void ImpossiblePartialOrder(Solver &solver, int m) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

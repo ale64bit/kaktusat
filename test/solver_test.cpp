@@ -9,15 +9,16 @@
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/i0.h"
 #include "solver/algorithm/z.h"
-#include "solver/builder/cardinality.h"
-#include "solver/builder/coloring.h"
-#include "solver/builder/factor.h"
-#include "solver/builder/langford.h"
-#include "solver/builder/mutilated_chessboard.h"
-#include "solver/builder/partial_order.h"
-#include "solver/builder/pigeonhole.h"
-#include "solver/builder/simple.h"
-#include "solver/builder/waerden.h"
+#include "solver/encoder/cardinality.h"
+#include "solver/encoder/coloring.h"
+#include "solver/encoder/encoder.h"
+#include "solver/encoder/factor.h"
+#include "solver/encoder/langford.h"
+#include "solver/encoder/mutilated_chessboard.h"
+#include "solver/encoder/partial_order.h"
+#include "solver/encoder/pigeonhole.h"
+#include "solver/encoder/sample.h"
+#include "solver/encoder/waerden.h"
 
 using BuildFn = std::function<void(solver::Solver &)>;
 
@@ -32,69 +33,69 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   return solvers;
 }
 
-std::vector<BuildFn> AllSATBuilders() {
+std::vector<BuildFn> AllSATEncoders() {
   return {
-      [](solver::Solver &s) { solver::builder::Unit(s); },
-      [](solver::Solver &s) { solver::builder::Tautology(s); },
-      [](solver::Solver &s) { solver::builder::Rprime(s); },
-      [](solver::Solver &s) { solver::builder::Waerden(s, 3, 3, 8); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 3); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 4); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 7); },
+      [](solver::Solver &s) { solver::encoder::Unit(s); },
+      [](solver::Solver &s) { solver::encoder::Tautology(s); },
+      [](solver::Solver &s) { solver::encoder::Rprime(s); },
+      [](solver::Solver &s) { solver::encoder::Waerden(s, 3, 3, 8); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 3); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 4); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 7); },
       [](solver::Solver &s) {
-        solver::builder::Coloring(s, 3, solver::builder::graph::Petersen());
+        solver::encoder::Coloring(s, 3, solver::encoder::graph::Petersen());
       },
       [](solver::Solver &s) {
-        solver::builder::Coloring(s, 4, solver::builder::graph::McGregor3());
+        solver::encoder::Coloring(s, 4, solver::encoder::graph::McGregor3());
       },
       [](solver::Solver &s) {
         std::vector<solver::Lit> x;
         for (int i = 1; i <= 7; ++i) {
           x.push_back(s.NewVar("x" + std::to_string(i)));
         }
-        solver::builder::AtLeast(s, x, 3);
-        solver::builder::AtMost(s, x, 4);
+        solver::encoder::AtLeast(s, x, 3);
+        solver::encoder::AtMost(s, x, 4);
       },
-      [](solver::Solver &s) { solver::builder::Factor(s, 2, 3, 21); },
+      [](solver::Solver &s) { solver::encoder::Factor(s, 2, 3, 21); },
   };
 }
 
-std::vector<BuildFn> AllUNSATBuilders() {
+std::vector<BuildFn> AllUNSATEncoders() {
   return {
-      [](solver::Solver &s) { solver::builder::Contradiction(s); },
-      [](solver::Solver &s) { solver::builder::R(s); },
-      [](solver::Solver &s) { solver::builder::Waerden(s, 3, 3, 9); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 2); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 5); },
-      [](solver::Solver &s) { solver::builder::Langford(s, 6); },
+      [](solver::Solver &s) { solver::encoder::Contradiction(s); },
+      [](solver::Solver &s) { solver::encoder::R(s); },
+      [](solver::Solver &s) { solver::encoder::Waerden(s, 3, 3, 9); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 2); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 5); },
+      [](solver::Solver &s) { solver::encoder::Langford(s, 6); },
       [](solver::Solver &s) {
-        solver::builder::Coloring(s, 2, solver::builder::graph::Petersen());
+        solver::encoder::Coloring(s, 2, solver::encoder::graph::Petersen());
       },
       [](solver::Solver &s) {
-        solver::builder::Coloring(s, 3, solver::builder::graph::McGregor3());
+        solver::encoder::Coloring(s, 3, solver::encoder::graph::McGregor3());
       },
       [](solver::Solver &s) {
         std::vector<solver::Lit> x;
         for (int i = 1; i <= 7; ++i) {
           x.push_back(s.NewVar("x" + std::to_string(i)));
         }
-        solver::builder::AtLeast(s, x, 4);
-        solver::builder::AtMost(s, x, 3);
+        solver::encoder::AtLeast(s, x, 4);
+        solver::encoder::AtMost(s, x, 3);
       },
-      [](solver::Solver &s) { solver::builder::ImpossiblePartialOrder(s, 3); },
-      [](solver::Solver &s) { solver::builder::Pigeonhole(s, 3); },
-      [](solver::Solver &s) { solver::builder::Pigeonhole(s, 4); },
-      [](solver::Solver &s) { solver::builder::MutilatedChessboard(s, 4); },
-      [](solver::Solver &s) { solver::builder::MutilatedChessboard(s, 5); },
-      [](solver::Solver &s) { solver::builder::Factor(s, 2, 3, 19); },
+      [](solver::Solver &s) { solver::encoder::ImpossiblePartialOrder(s, 3); },
+      [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 3); },
+      [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 4); },
+      [](solver::Solver &s) { solver::encoder::MutilatedChessboard(s, 4); },
+      [](solver::Solver &s) { solver::encoder::MutilatedChessboard(s, 5); },
+      [](solver::Solver &s) { solver::encoder::Factor(s, 2, 3, 19); },
   };
 }
 
 TEST(SolverTest, SATTest) {
-  for (auto builder : AllSATBuilders()) {
+  for (auto encoder : AllSATEncoders()) {
     for (auto &solver : AllSolvers()) {
       solver->Reset();
-      builder(*solver);
+      encoder(*solver);
       auto [res, sol] = solver->Solve();
       EXPECT_EQ(res, solver::Result::kSAT);
       EXPECT_TRUE(solver->Verify(sol));
@@ -103,10 +104,10 @@ TEST(SolverTest, SATTest) {
 }
 
 TEST(SolverTest, UNSATTest) {
-  for (auto builder : AllUNSATBuilders()) {
+  for (auto encoder : AllUNSATEncoders()) {
     for (auto &solver : AllSolvers()) {
       solver->Reset();
-      builder(*solver);
+      encoder(*solver);
       auto [res, sol] = solver->Solve();
       EXPECT_EQ(res, solver::Result::kUNSAT);
       EXPECT_TRUE(sol.empty());

@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
  * Constraints given literals so that at least one can be true.
@@ -57,5 +57,5 @@ void AtMost(Solver &, const std::vector<Lit> &, int r);
  */
 void Exactly(Solver &, const std::vector<Lit> &, int r);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

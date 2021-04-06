@@ -14,7 +14,7 @@
 #include "solver/algorithm/i0.h"
 #include "solver/algorithm/nop.h"
 #include "solver/algorithm/z.h"
-#include "solver/builder/dimacs.h"
+#include "solver/encoder/dimacs.h"
 #include "util/log.h"
 
 constexpr size_t kValuesPerLine = 10;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   {
     COMMENT << "reading instance from DIMACS file: " << path;
     auto start = std::chrono::system_clock::now();
-    auto err = solver::builder::FromDimacsFile(solver, path);
+    auto err = solver::encoder::FromDimacsFile(solver, path);
     if (!err.empty()) {
       LOG << "error while reading instance: " << err;
       return 1;

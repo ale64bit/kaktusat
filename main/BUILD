@@ -3,6 +3,6 @@ cc_binary(
     srcs = ["main.cpp"],
     deps = [
         "//solver/algorithm",
-        "//solver/builder",
+        "//solver/encoder",
     ],
 )

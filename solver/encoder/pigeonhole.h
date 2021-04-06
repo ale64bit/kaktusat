@@ -1,13 +1,13 @@
 #pragma once
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
- * Instance builder for pigeonhole principle for m+1 elements.
+ * Instance encoder for pigeonhole principle for m+1 elements.
  *
  * Always unsatisfiable. Useful for refutation experiments.
  *
@@ -16,5 +16,5 @@ namespace builder {
  */
 void Pigeonhole(Solver &, int m);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

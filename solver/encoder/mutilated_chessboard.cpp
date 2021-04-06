@@ -1,14 +1,14 @@
-#include "solver/builder/mutilated_chessboard.h"
+#include "solver/encoder/mutilated_chessboard.h"
 
 #include <array>
 #include <string>
 #include <vector>
 
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 #include "util/log.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void MutilatedChessboard(Solver &solver, int n) {
   CHECK(n > 1) << "n must be greater than 1, got n=" << n;
@@ -45,7 +45,7 @@ void MutilatedChessboard(Solver &solver, int n) {
         }
       }
       // Each cell must be matched with a neighbor.
-      solver::builder::ExactlyOne(solver, x[i][j]);
+      solver::encoder::ExactlyOne(solver, x[i][j]);
     }
   }
 
@@ -56,5 +56,5 @@ void MutilatedChessboard(Solver &solver, int n) {
   solver.AddClause({~x[n - 1][n - 1][2]});
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

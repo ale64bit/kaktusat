@@ -2,11 +2,11 @@
 
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/nop.h"
-#include "solver/builder/builder.h"
-#include "solver/builder/cardinality.h"
-#include "solver/builder/waerden.h"
+#include "solver/encoder/cardinality.h"
+#include "solver/encoder/encoder.h"
+#include "solver/encoder/waerden.h"
 
-TEST(BuilderTest, CardinalityExactlyOne) {
+TEST(EncoderTest, CardinalityExactlyOne) {
   for (int n = 3; n <= 20; ++n) {
     solver::algorithm::Nop solver;
     std::vector<solver::Lit> x;
@@ -14,8 +14,8 @@ TEST(BuilderTest, CardinalityExactlyOne) {
     for (int i = 1; i <= n; ++i) {
       lits.push_back(solver.NewVar("x" + std::to_string(i)));
     }
-    solver::builder::ExactlyOne(solver, lits,
-                                solver::builder::Mode::kLessVariables);
+    solver::encoder::ExactlyOne(solver, lits,
+                                solver::encoder::Mode::kLessVariables);
     EXPECT_EQ(solver.NumVars(), n);
     EXPECT_EQ(solver.NumClauses(), 1 + n * (n - 1) / 2);
   }
@@ -26,14 +26,14 @@ TEST(BuilderTest, CardinalityExactlyOne) {
     for (int i = 1; i <= n; ++i) {
       lits.push_back(solver.NewVar("x" + std::to_string(i)));
     }
-    solver::builder::ExactlyOne(solver, lits,
-                                solver::builder::Mode::kLessClauses);
+    solver::encoder::ExactlyOne(solver, lits,
+                                solver::encoder::Mode::kLessClauses);
     EXPECT_EQ(solver.NumVars(), n + (n - 3) / 2);
     EXPECT_EQ(solver.NumClauses(), 3 * n - 5);
   }
 }
 
-TEST(BuilderTest, CardinalitySAT) {
+TEST(EncoderTest, CardinalitySAT) {
   using SetupFn =
       std::function<void(solver::Solver &, std::vector<solver::Lit> &, int)>;
   using CheckFn = std::function<void(int, int)>;
@@ -48,17 +48,17 @@ TEST(BuilderTest, CardinalitySAT) {
       for (auto tt : {
                EncoderTest{
                    [](solver::Solver &solver, std::vector<solver::Lit> &x,
-                      int r) { solver::builder::AtMost(solver, x, r); },
+                      int r) { solver::encoder::AtMost(solver, x, r); },
                    [](int got, int r) { EXPECT_LE(got, r); },
                },
                EncoderTest{
                    [](solver::Solver &solver, std::vector<solver::Lit> &x,
-                      int r) { solver::builder::AtLeast(solver, x, r); },
+                      int r) { solver::encoder::AtLeast(solver, x, r); },
                    [](int got, int r) { EXPECT_GE(got, r); },
                },
                EncoderTest{
                    [](solver::Solver &solver, std::vector<solver::Lit> &x,
-                      int r) { solver::builder::Exactly(solver, x, r); },
+                      int r) { solver::encoder::Exactly(solver, x, r); },
                    [](int got, int r) { EXPECT_EQ(got, r); },
                },
            }) {
@@ -70,7 +70,7 @@ TEST(BuilderTest, CardinalitySAT) {
         }
 
         tt.Setup(solver, x, r);
-        solver::builder::AtMost(solver, x, r);
+        solver::encoder::AtMost(solver, x, r);
         auto [res, sol] = solver.Solve();
         ASSERT_EQ(res, solver::Result::kSAT);
 
@@ -86,12 +86,12 @@ TEST(BuilderTest, CardinalitySAT) {
   }
 }
 
-TEST(BuilderTest, Waerden) {
+TEST(EncoderTest, Waerden) {
   for (int j = 2; j <= 20; ++j) {
     for (int k = 2; k <= 20; ++k) {
       for (int n = 1; n <= 50; ++n) {
         solver::algorithm::Nop solver;
-        solver::builder::Waerden(solver, j, k, n);
+        solver::encoder::Waerden(solver, j, k, n);
         EXPECT_EQ(solver.NumVars(), n);
         EXPECT_EQ(solver.NumClauses(),
                   ((n / (j - 1)) * n -

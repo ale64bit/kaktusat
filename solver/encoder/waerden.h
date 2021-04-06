@@ -2,14 +2,14 @@
 
 #include <vector>
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
- * Instance builder for van der Waerden numbers on two colors.
+ * Instance encoder for van der Waerden numbers on two colors.
  *
  * Waerden(j, k, n) generates an instance that is satisfiable iff n < W(j, k).
  * In other words, it computes a binary sequence of length n such that there
@@ -26,7 +26,7 @@ namespace builder {
 void Waerden(Solver &, int, int, int);
 
 /*
- * Instance builder for general van der Waerden numbers.
+ * Instance encoder for general van der Waerden numbers.
  *
  * Waerden([k_1, ..., k_b], n) generates an instance that is satisfiable iff n <
  * W(k_1, ..., k_b).
@@ -37,5 +37,5 @@ void Waerden(Solver &, int, int, int);
  */
 void Waerden(Solver &, std::vector<int>, int, Mode = Mode::kLessVariables);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

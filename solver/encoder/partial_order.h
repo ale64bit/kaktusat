@@ -1,13 +1,13 @@
 #pragma once
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
- * Instance builder for an impossible partial order on m elements.
+ * Instance encoder for an impossible partial order on m elements.
  *
  * Always unsatisfiable. Useful for refutation experiments.
  *
@@ -15,5 +15,5 @@ namespace builder {
  */
 void ImpossiblePartialOrder(Solver &, int);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

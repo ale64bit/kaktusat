@@ -5,19 +5,19 @@ cc_test(
     ],
     deps = [
         "//solver/algorithm",
-        "//solver/builder",
+        "//solver/encoder",
         "@gtest//:gtest_main",
     ],
 )
 
 cc_test(
-    name = "builder_test",
+    name = "encoder_test",
     srcs = [
-        "builder_test.cpp",
+        "encoder_test.cpp",
     ],
     deps = [
         "//solver/algorithm",
-        "//solver/builder",
+        "//solver/encoder",
         "@gtest//:gtest_main",
     ],
 )
@@ -29,7 +29,7 @@ cc_test(
     ],
     deps = [
         "//solver/algorithm",
-        "//solver/builder",
+        "//solver/encoder",
         "//solver/transform",
         "@gtest//:gtest_main",
     ],
@@ -40,6 +40,6 @@ cc_binary(
     srcs = ["stress.cpp"],
     deps = [
         "//solver/algorithm",
-        "//solver/builder",
+        "//solver/encoder",
     ],
 )

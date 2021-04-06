@@ -1,10 +1,10 @@
-#include "solver/builder/pigeonhole.h"
+#include "solver/encoder/pigeonhole.h"
 
 #include <string>
 #include <vector>
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void Pigeonhole(Solver &solver, int m) {
   // x(j, k) means pigeon j takes hole k
@@ -34,5 +34,5 @@ void Pigeonhole(Solver &solver, int m) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

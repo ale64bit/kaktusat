@@ -11,7 +11,7 @@
 #include "solver/algorithm/b.h"
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/i0.h"
-#include "solver/builder/dimacs.h"
+#include "solver/encoder/dimacs.h"
 
 namespace fs = std::filesystem;
 
@@ -45,9 +45,9 @@ int main(int argc, char *argv[]) {
       continue;
     }
     solver.Reset();
-    auto err = solver::builder::FromDimacsFile(solver, p.path());
+    auto err = solver::encoder::FromDimacsFile(solver, p.path());
     if (!err.empty()) {
-      std::cerr << "Reading instance: " << err << std::endl;
+      std::cerr << "reading instance: " << err << std::endl;
       return 1;
     }
     auto start = std::chrono::system_clock::now();

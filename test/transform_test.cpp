@@ -3,13 +3,13 @@
 #include <array>
 
 #include "solver/algorithm/nop.h"
-#include "solver/builder/rand.h"
+#include "solver/encoder/rand.h"
 #include "solver/transform/monotonic.h"
 #include "solver/transform/sat3.h"
 
 TEST(TransformTest, Monotonic) {
   solver::algorithm::Nop solver;
-  solver::builder::Rand(solver, 8, 10, 3);
+  solver::encoder::Rand(solver, 8, 10, 3);
   solver::transform::Monotonic(solver);
 
   for (const auto &clause : solver.GetClauses()) {
@@ -24,7 +24,7 @@ TEST(TransformTest, Monotonic) {
 
 TEST(TransformTest, SAT3) {
   solver::algorithm::Nop solver;
-  solver::builder::Rand(solver, 8, 10, 7);
+  solver::encoder::Rand(solver, 8, 10, 7);
   solver::transform::SAT3(solver);
 
   for (const auto &clause : solver.GetClauses()) {

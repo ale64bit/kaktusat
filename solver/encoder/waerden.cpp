@@ -1,11 +1,11 @@
-#include "solver/builder/waerden.h"
+#include "solver/encoder/waerden.h"
 
 #include <vector>
 
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void Waerden(Solver &solver, int j, int k, int n) {
   std::vector<Var> x;
@@ -66,5 +66,5 @@ void Waerden(Solver &solver, std::vector<int> k, int n, Mode mode) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

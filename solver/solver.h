@@ -54,6 +54,7 @@ public:
   Solver();
   virtual ~Solver() {}
 
+  void Reset();
   Var NewVar(std::string);
   Var NewTempVar(std::string = "t");
   Var NewOrGetVar(std::string);
@@ -64,7 +65,6 @@ public:
   int NumClauses() const { return static_cast<int>(clauses_.size()); }
   const std::vector<std::string> &GetVarNames() const;
   const std::vector<std::vector<Lit>> &GetClauses() const;
-  void Reset();
   bool Verify(const std::vector<Lit> &, std::string * = nullptr) const;
   std::string ToString(Var) const;
   std::string ToString(Lit) const;

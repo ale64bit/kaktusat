@@ -1,13 +1,13 @@
 #pragma once
 
-#include "solver/builder/builder.h"
+#include "solver/encoder/encoder.h"
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
- * Instance builder for mutilated chessboard problem of size n.
+ * Instance encoder for mutilated chessboard problem of size n.
  *
  * Always unsatisfiable. Useful for refutation experiments.
  *
@@ -15,5 +15,5 @@ namespace builder {
  */
 void MutilatedChessboard(Solver &, int n);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

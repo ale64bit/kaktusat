@@ -1,11 +1,11 @@
-#include "solver/builder/langford.h"
+#include "solver/encoder/langford.h"
 
 #include <vector>
 
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void Langford(Solver &solver, int n, Mode mode) {
   auto VarId = [](int i, int j, int k) {
@@ -37,5 +37,5 @@ void Langford(Solver &solver, int n, Mode mode) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

@@ -3,7 +3,7 @@
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
  * Generates random k-SAT instances on n variables and m clauses.
@@ -12,5 +12,5 @@ namespace builder {
  */
 void Rand(Solver &, int n, int m, int k);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

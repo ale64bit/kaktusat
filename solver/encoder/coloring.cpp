@@ -1,11 +1,11 @@
-#include "solver/builder/coloring.h"
+#include "solver/encoder/coloring.h"
 
 #include <set>
 
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void Coloring(Solver &solver, int d, GraphEdges edges, Mode mode) {
   // Collect the unique vertices.
@@ -63,5 +63,5 @@ GraphEdges McGregor3() {
 
 } // namespace graph
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

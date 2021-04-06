@@ -6,10 +6,10 @@
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
- * Instance builder for integer factorization.
+ * Instance encoder for integer factorization.
  *
  * The generated instance is satisfiable when z can be factored into two factors
  * of m and n bits, respectively.
@@ -20,5 +20,5 @@ void Factor(Solver &, int m, int n, uint64_t z);
 
 void Factor(Solver &, int m, int n, std::vector<int> z);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

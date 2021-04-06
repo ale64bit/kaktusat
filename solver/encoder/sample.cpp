@@ -1,25 +1,7 @@
-#include "solver/builder/simple.h"
-
-#include "util/log.h"
+#include "solver/encoder/sample.h"
 
 namespace solver {
-namespace builder {
-
-void Unit(Solver &solver, std::string id) {
-  auto x = solver.NewVar(id);
-  solver.AddClause({x});
-}
-
-void Tautology(Solver &solver, std::string id) {
-  auto x = solver.NewVar(id);
-  solver.AddClause({x, ~x});
-}
-
-void Contradiction(Solver &solver, std::string id) {
-  auto x = solver.NewVar(id);
-  solver.AddClause({x});
-  solver.AddClause({~x});
-}
+namespace encoder {
 
 void R(Solver &solver) {
   Rprime(solver);
@@ -46,5 +28,5 @@ void Rprime(Solver &solver) {
   solver.AddClause({~x3, ~x4, ~x1});
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

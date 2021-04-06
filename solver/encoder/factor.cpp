@@ -1,14 +1,14 @@
-#include "solver/builder/factor.h"
+#include "solver/encoder/factor.h"
 
 #include <stack>
 #include <string>
 #include <vector>
 
-#include "solver/builder/circuit.h"
+#include "solver/encoder/circuit.h"
 #include "util/log.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void Factor(Solver &solver, int m, int n, uint64_t zz) {
   std::vector<int> z;
@@ -96,5 +96,5 @@ void Factor(Solver &solver, int m, int n, std::vector<int> zz) {
   }
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

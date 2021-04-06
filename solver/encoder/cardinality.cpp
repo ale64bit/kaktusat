@@ -1,9 +1,9 @@
-#include "solver/builder/cardinality.h"
+#include "solver/encoder/cardinality.h"
 
 #include "util/log.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 void AtLeastOne(Solver &solver, const std::vector<Lit> &y, Mode) {
   CHECK(!y.empty()) << "there must be at least one literal";
@@ -219,5 +219,5 @@ void Exactly(Solver &solver, const std::vector<Lit> &x, int r) {
   AtMost(solver, x, r);
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

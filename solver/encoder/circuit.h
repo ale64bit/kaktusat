@@ -5,7 +5,7 @@
 #include "solver/solver.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 /*
  * Assignment.
@@ -63,5 +63,5 @@ void HalfAdder(Solver &, Lit t, Lit c, Lit u, Lit v);
  */
 void FullAdder(Solver &, Lit t, Lit c1, Lit u, Lit v, Lit c0);
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

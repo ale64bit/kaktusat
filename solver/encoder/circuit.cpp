@@ -1,9 +1,9 @@
-#include "solver/builder/circuit.h"
+#include "solver/encoder/circuit.h"
 
 #include "util/log.h"
 
 namespace solver {
-namespace builder {
+namespace encoder {
 
 // u -> t
 // ~u -> ~t
@@ -56,5 +56,5 @@ void FullAdder(Solver &solver, Lit t, Lit c1, Lit u, Lit v, Lit c0) {
   solver.AddClause({~v, ~c0, c1});
 }
 
-} // namespace builder
+} // namespace encoder
 } // namespace solver

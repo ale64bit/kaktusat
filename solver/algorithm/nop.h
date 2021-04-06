@@ -11,7 +11,7 @@ namespace algorithm {
 /*
  * A dummy solver that doesn't actually solve anything.
  *
- * Useful for testing builder/solver intrinsic properties.
+ * Useful for testing encoder/solver intrinsic properties.
  */
 class Nop : public Solver {
 public:
