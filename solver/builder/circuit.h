@@ -8,42 +8,60 @@ namespace solver {
 namespace builder {
 
 /*
- * Assignment: t = u
+ * Assignment.
+ *
+ *   t = u
  *
  * @see: 7.2.2.2 - p9
  */
-void Set(Solver &, Var t, Var u);
+void Set(Solver &, Lit t, Lit u);
 
 /*
- * And: t = u /\ v
+ * AND gate.
+ *
+ *   t = u & v
  *
  * @see: 7.2.2.2 - p9
  */
-void And(Solver &, Var t, Var u, Var v);
+void And(Solver &, Lit t, Lit u, Lit v);
 
 /*
- * Or: t = u \/ v
+ * OR gate.
+ *
+ *   t = u | v
  *
  * @see: 7.2.2.2 - p9
  */
-void Or(Solver &, Var t, Var u, Var v);
+void Or(Solver &, Lit t, Lit u, Lit v);
 
 /*
- * Xor: t = u + v
+ * XOR gate.
+ *
+ *   t = u ^ v
  *
  * @see: 7.2.2.2 - p9
  */
-void Xor(Solver &, Var t, Var u, Var v);
+void Xor(Solver &, Lit t, Lit u, Lit v);
 
 /*
- * Half-adder storing the result in t and the carry in c.
+ * Half-adder.
  *
- *   t = u + v
- *   c = u /\ v
+ *   t = u ^ v
+ *   c = u & v
  *
  * @see: 7.2.2.2 - p9
  */
-void HalfAdder(Solver &, Var t, Var c, Var u, Var v);
+void HalfAdder(Solver &, Lit t, Lit c, Lit u, Lit v);
+
+/*
+ * Full-adder.
+ *
+ *   t  = u ^ v ^ c0
+ *   c1 = median(u, v, c0)
+ *
+ * @see: 7.2.2.2 - p9
+ */
+void FullAdder(Solver &, Lit t, Lit c1, Lit u, Lit v, Lit c0);
 
 } // namespace builder
 } // namespace solver

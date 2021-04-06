@@ -5,13 +5,29 @@
 #include <vector>
 
 #include "solver/builder/circuit.h"
+#include "util/log.h"
 
 namespace solver {
 namespace builder {
 
 void Factor(Solver &solver, int m, int n, uint64_t zz) {
+  std::vector<int> z;
+  for (int k = 0; k < m + n; ++k, zz >>= 1) {
+    z.push_back(zz & 1);
+  }
+  CHECK(zz == 0) << "not enough bits to represent the product";
+  return Factor(solver, m, n, z);
+}
+
+void Factor(Solver &solver, int m, int n, std::vector<int> zz) {
   if (m > n) {
     std::swap(m, n);
+  }
+  CHECK(m + n >= (int)zz.size())
+      << "not enough bits to represent the product z, need at least "
+      << zz.size() << ", got m+n=" << m + n;
+  for (auto d : zz) {
+    CHECK(d == 0 || d == 1) << "z must have only binary digits, got " << d;
   }
 
   // Create the variables encoding the solution.
@@ -39,23 +55,6 @@ void Factor(Solver &solver, int m, int n, uint64_t zz) {
     }
   }
 
-  auto FullAdder = [&](Var u, Var v, Var w) -> std::pair<Var, Var> {
-    auto r = solver.NewTempVar("r");
-    auto c = solver.NewTempVar("c");
-    auto t = solver.NewTempVar("t");
-
-    Xor(solver, t, u, v);
-    Xor(solver, r, t, w);
-
-    solver.AddClause({u, v, ~c});
-    solver.AddClause({u, w, ~c});
-    solver.AddClause({v, w, ~c});
-    solver.AddClause({~u, ~v, c});
-    solver.AddClause({~u, ~w, c});
-    solver.AddClause({~v, ~w, c});
-    return {r, c};
-  };
-
   // Process the bits in the bins.
   for (int k = 0; k < m + n; ++k) {
     while (!bin[k].empty()) {
@@ -78,7 +77,9 @@ void Factor(Solver &solver, int m, int n, uint64_t zz) {
         bin[k].pop();
         auto b3 = bin[k].top();
         bin[k].pop();
-        auto [r, c] = FullAdder(b1, b2, b3);
+        auto r = solver.NewTempVar("r");
+        auto c = solver.NewTempVar("c");
+        FullAdder(solver, r, c, b1, b2, b3);
         bin[k].push(r);
         bin[k + 1].push(c);
       }
@@ -86,8 +87,8 @@ void Factor(Solver &solver, int m, int n, uint64_t zz) {
   }
 
   // Add unit clauses representing z.
-  for (int k = 0; k < m + n; ++k, zz >>= 1) {
-    if (zz & 1) {
+  for (int k = 0; k < m + n; ++k) {
+    if (zz[k]) {
       solver.AddClause({z[k]});
     } else {
       solver.AddClause({~z[k]});

@@ -28,7 +28,7 @@ void ImpossiblePartialOrder(Solver &solver, int m) {
     for (int j = 0; j < m; ++j) {
       for (int k = 0; k < m; ++k) {
         if (i != j && j != k) {
-          // transitive: x(i,j) /\ x(j,k) => x(i,k)
+          // transitive: x(i,j) /\ x(j,k) -> x(i,k)
           solver.AddClause({~x[i][j], ~x[j][k], x[i][k]});
         }
       }

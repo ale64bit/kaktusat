@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "solver/solver.h"
 
@@ -16,6 +17,8 @@ namespace builder {
  * @see: 7.2.2.2 - p9
  */
 void Factor(Solver &, int m, int n, uint64_t z);
+
+void Factor(Solver &, int m, int n, std::vector<int> z);
 
 } // namespace builder
 } // namespace solver
