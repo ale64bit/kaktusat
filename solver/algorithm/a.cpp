@@ -123,7 +123,7 @@ A5: // Try again.
   if (m[d] < 2) {
     m[d] = 3 - m[d];
     l = 2 * d + (m[d] & 1);
-    LOG << "A5: try again: l=" << ToString(Lit(l)) << '\n';
+    LOG << "A5: try again: l=" << ToString(Lit(l));
     goto A3;
   }
 
@@ -133,7 +133,7 @@ A6: // Backtrack.
   } else {
     --d;
     l = 2 * d + (m[d] & 1);
-    LOG << "A6: backtrack: l=" << ToString(Lit(l)) << '\n';
+    LOG << "A6: backtrack: l=" << ToString(Lit(l));
   }
 
 A7: // Reactivate l's clauses.

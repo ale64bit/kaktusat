@@ -60,6 +60,7 @@ void HalfAdder(Solver &, Lit t, Lit c, Lit u, Lit v);
  *   c1 = median(u, v, c0)
  *
  * @see: 7.2.2.2 - p9
+ * @see: 7.2.2.2 - exercise 42, p136
  */
 void FullAdder(Solver &, Lit t, Lit c1, Lit u, Lit v, Lit c0);
 

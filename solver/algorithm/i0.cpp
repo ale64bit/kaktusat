@@ -110,7 +110,8 @@ I2: // Advance.
   if (d == NumVars()) {
     std::vector<Lit> sol;
     for (int k = 1; k <= d; ++k) {
-      sol.push_back(Lit(l[k]));
+      Lit lit(l[k]);
+      sol.push_back(lit);
     }
     return {Result::kSAT, sol};
   }

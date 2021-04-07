@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   case solver::Result::kSAT:
     for (const auto &l : sol) {
       int i, j, d;
-      if (l.IsPos() &&
+      if (!solver.IsTemp(l.V()) && l.IsPos() &&
           sscanf(solver.NameOf(l.V()).c_str(), "x%d_%d_%d", &i, &j, &d) == 3) {
         t[i - 1][j - 1] = d;
       }

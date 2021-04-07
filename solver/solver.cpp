@@ -5,6 +5,10 @@
 
 namespace solver {
 
+// A prefix used for temporary variables, which can't be used in ordinary
+// variables.
+static constexpr char kTmpSep = '$';
+
 Var::Var(int x) : x(x) {
   CHECK(x > 0) << "variable representation must be positive, got x=" << x;
 }
@@ -26,20 +30,31 @@ Var Lit::V() const { return Var(l >> 1); }
 Solver::Solver() : n_(0), tmpID_(0) {}
 
 Var Solver::NewTempVar(std::string prefix) {
-  while (nameToVar_.count(prefix + "__" + std::to_string(tmpID_))) {
+  CHECK(prefix.find(kTmpSep) == std::string::npos)
+      << "variable prefixes are not allowed to contain '" << kTmpSep << "'";
+  while (nameToVar_.count(prefix + kTmpSep + std::to_string(tmpID_))) {
     ++tmpID_;
   }
-  std::string name = prefix + "__" + std::to_string(tmpID_++);
-  return NewVar(name);
+  std::string name = prefix + kTmpSep + std::to_string(tmpID_++);
+  name_.push_back(name);
+  ++n_;
+  Var x(n_);
+  nameToVar_.emplace(name, x);
+  isTemp_.emplace_back(true);
+  return x;
 }
 
 Var Solver::NewVar(std::string name) {
+  CHECK(name.find(kTmpSep) == std::string::npos)
+      << "variable names are not allowed to contain '" << kTmpSep << "'";
+  CHECK(!name.empty()) << "variable name cannot be empty";
   CHECK(nameToVar_.count(name) == 0)
       << "duplicate variable name '" << name << "'";
   name_.push_back(name);
   ++n_;
   Var x(n_);
   nameToVar_.emplace(name, x);
+  isTemp_.emplace_back(false);
   return x;
 }
 
@@ -63,6 +78,8 @@ const std::vector<std::vector<Lit>> &Solver::GetClauses() const {
 }
 
 std::string Solver::NameOf(Var x) const { return name_[x.ID() - 1]; }
+
+bool Solver::IsTemp(Var x) const { return isTemp_[x.ID() - 1]; }
 
 void Solver::AddClause(std::vector<Lit> c) { clauses_.emplace_back(c); }
 

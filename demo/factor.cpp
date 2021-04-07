@@ -3,6 +3,7 @@
 #include <string>
 
 #include "solver/algorithm/d.h"
+#include "solver/encoder/encoder.h"
 #include "solver/encoder/factor.h"
 #include "util/log.h"
 
@@ -46,14 +47,12 @@ int main(int argc, char *argv[]) {
   case solver::Result::kSAT:
     // Decode the factors from the solution literals.
     for (const auto &l : sol) {
-      std::string name = solver.NameOf(l.V());
-      if (name[0] == 'x') {
-        if (l.IsPos()) {
+      if (l.IsPos() && !solver.IsTemp(l.V())) {
+        std::string name = solver.NameOf(l.V());
+        if (name[0] == 'x') {
           int idx = std::atoi(name.data() + 1);
           x ^= (1ull << (idx - 1));
-        }
-      } else if (name[0] == 'y') {
-        if (l.IsPos()) {
+        } else if (name[0] == 'y') {
           int idx = std::atoi(name.data() + 1);
           y ^= (1ull << (idx - 1));
         }

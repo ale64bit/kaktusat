@@ -60,6 +60,7 @@ public:
   Var NewOrGetVar(std::string);
   Var GetVar(std::string) const;
   std::string NameOf(Var) const;
+  bool IsTemp(Var) const;
   void AddClause(std::vector<Lit>);
   int NumVars() const { return n_; }
   int NumClauses() const { return static_cast<int>(clauses_.size()); }
@@ -81,6 +82,7 @@ protected:
   std::vector<std::vector<Lit>> clauses_;
   std::unordered_map<std::string, Var> nameToVar_;
   int tmpID_;
+  std::vector<bool> isTemp_;
 };
 
 } // namespace solver
