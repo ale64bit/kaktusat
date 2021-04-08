@@ -76,7 +76,6 @@ TEST(EncoderTest, CardinalitySAT) {
 
         int cnt = 0;
         for (const auto &l : sol) {
-          EXPECT_FALSE(solver.IsTemp(l.V()));
           if (solver.NameOf(l.V())[0] == 'x' && !l.IsNeg()) {
             ++cnt;
           }

@@ -47,6 +47,8 @@ int main(int argc, char *argv[]) {
   case solver::Result::kSAT:
     // Decode the factors from the solution literals.
     for (const auto &l : sol) {
+      // Only consider variables which are set to true and which are not
+      // temporaries introduced in the encoding/solving process.
       if (l.IsPos() && !solver.IsTemp(l.V())) {
         std::string name = solver.NameOf(l.V());
         if (name[0] == 'x') {

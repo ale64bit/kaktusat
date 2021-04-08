@@ -99,9 +99,6 @@ TEST(SolverTest, SATTest) {
       auto [res, sol] = solver->Solve();
       EXPECT_EQ(res, solver::Result::kSAT);
       EXPECT_TRUE(solver->Verify(sol));
-      for (const auto &l : sol) {
-        EXPECT_FALSE(solver->IsTemp(l.V()));
-      }
     }
   }
 }
