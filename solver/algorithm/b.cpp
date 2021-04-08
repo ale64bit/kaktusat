@@ -9,6 +9,21 @@ namespace solver {
 namespace algorithm {
 
 std::pair<Result, Assignment> B::Solve() {
+  std::vector<Assignment> sol;
+  auto res = SolveInternal(sol, false);
+  if (res == Result::kSAT) {
+    return {Result::kSAT, sol.back()};
+  }
+  return {res, {}};
+}
+
+std::pair<Result, std::vector<Assignment>> B::SolveAll() {
+  std::vector<Assignment> sol;
+  auto res = SolveInternal(sol, true);
+  return {res, sol};
+}
+
+Result B::SolveInternal(std::vector<Assignment> &solutions, bool all) {
   // L[i]     = i-th cell's literal.
   // W[l]     = first clause watching literal l or 0 if none.
   // START[j] = first cell of clause j
@@ -48,7 +63,12 @@ B2: // Rejoice or choose.
       Var x(j);
       ret.push_back((1 ^ (m[j] & 1)) ? x : ~x);
     }
-    return {Result::kSAT, ret};
+    solutions.emplace_back(ret);
+    if (all) {
+      goto B6;
+    } else {
+      return Result::kSAT;
+    }
   }
   // Choose ~l if W[l] is empty or W[~l] is not empty.
   m[d] = (W[2 * d] == 0 || W[2 * d + 1] != 0);
@@ -101,15 +121,11 @@ B5: // Try again.
 
 B6: // Backtrack.
   if (d == 1) {
-    return {Result::kUNSAT, {}};
+    return solutions.empty() ? Result::kUNSAT : Result::kSAT;
   }
   --d;
   LOG << "B6: backtrack with d=" << d;
   goto B5;
-}
-std::pair<Result, std::vector<Assignment>> B::SolveAll() {
-  COMMENT << "this solver does not support listing all satisfying assignments";
-  return {Result::kUnknown, {}};
 }
 
 } // namespace algorithm

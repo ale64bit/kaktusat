@@ -18,6 +18,9 @@ public:
   std::pair<Result, Assignment> Solve() override;
   std::pair<Result, std::vector<Assignment>> SolveAll() override;
   std::string ID() const override { return "B"; }
+
+private:
+  Result SolveInternal(std::vector<Assignment> &, bool);
 };
 
 } // namespace algorithm

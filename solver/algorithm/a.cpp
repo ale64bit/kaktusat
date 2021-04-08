@@ -87,7 +87,6 @@ A2: // Choose.
       Var x(j);
       ret.push_back((1 ^ (m[j] & 1)) ? x : ~x);
     }
-    LOG << "A2: solution = [" << ToString(ret) << "]";
     solutions.emplace_back(ret);
     goto A6;
   }
