@@ -9,7 +9,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> Analyze::Solve() {
+std::pair<Result, Assignment> Analyze::Solve() {
   std::set<Lit> litSeen;
   std::set<Var> varSeen;
   std::map<int, int> clauseLenCnt;
@@ -81,6 +81,11 @@ std::pair<Result, std::vector<Lit>> Analyze::Solve() {
     LOG << "\t" << len << ": " << cnt;
   }
 
+  return {Result::kUnknown, {}};
+}
+
+std::pair<Result, std::vector<Assignment>> Analyze::SolveAll() {
+  COMMENT << "this solver does not support listing all satisfying assignments";
   return {Result::kUnknown, {}};
 }
 

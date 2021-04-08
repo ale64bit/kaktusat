@@ -6,7 +6,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> Z::Solve() {
+std::pair<Result, Assignment> Z::Solve() {
   std::vector<Lit> cur;
   cur.reserve(NumVars());
 
@@ -29,6 +29,36 @@ std::pair<Result, std::vector<Lit>> Z::Solve() {
     return {Result::kSAT, cur};
   }
   return {Result::kUNSAT, {}};
+}
+
+std::pair<Result, std::vector<Assignment>> Z::SolveAll() {
+  std::vector<Assignment> all;
+  std::vector<Lit> cur;
+  cur.reserve(NumVars());
+
+  std::function<void(int)> Search = [&](int i) {
+    if (i == 0) {
+      if (Verify(cur)) {
+        all.push_back(cur);
+        LOG << "solution = [" << ToString(cur) << "]";
+      }
+      return;
+    }
+    Var x(i);
+    for (auto lit : {Lit(x), Lit(~x)}) {
+      cur.push_back(lit);
+      Search(i - 1);
+      cur.pop_back();
+    }
+  };
+
+  Search(n_);
+
+  if (all.empty()) {
+    return {Result::kUNSAT, {}};
+  }
+
+  return {Result::kSAT, all};
 }
 
 } // namespace algorithm

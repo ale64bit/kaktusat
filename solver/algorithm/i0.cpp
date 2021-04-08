@@ -9,7 +9,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> I0::Solve() {
+std::pair<Result, Assignment> I0::Solve() {
   int m; // current number of clauses.
   int d; // depth of implicit search tree.
   int i; // index of clause falsified by l.
@@ -200,6 +200,10 @@ I5: // Resolve.
   d = t;
   i = m - 1;
   goto I4;
+}
+std::pair<Result, std::vector<Assignment>> I0::SolveAll() {
+  COMMENT << "this solver does not support listing all satisfying assignments";
+  return {Result::kUnknown, {}};
 }
 
 } // namespace algorithm

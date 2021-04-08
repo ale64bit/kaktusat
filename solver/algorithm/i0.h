@@ -17,7 +17,8 @@ class I0 : public Solver {
 public:
   I0() {}
 
-  std::pair<Result, std::vector<Lit>> Solve() override;
+  std::pair<Result, Assignment> Solve() override;
+  std::pair<Result, std::vector<Assignment>> SolveAll() override;
   std::string ID() const override { return "I0"; }
 };
 

@@ -8,7 +8,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> A2::Solve() {
+std::pair<Result, Assignment> A2::Solve() {
   const int n = NumVars();
 
   std::vector<int> L(2 * n + 2, 0);
@@ -168,6 +168,11 @@ A8: // Unremove ~l.
     }
   }
   goto A5;
+}
+
+std::pair<Result, std::vector<Assignment>> A2::SolveAll() {
+  COMMENT << "this solver does not support listing all satisfying assignments";
+  return {Result::kUnknown, {}};
 }
 
 } // namespace algorithm

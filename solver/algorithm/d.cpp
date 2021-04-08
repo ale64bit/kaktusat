@@ -8,7 +8,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> D::Solve() {
+std::pair<Result, Assignment> D::Solve() {
   // L[i]     = i-th cell's literal.
   // W[l]     = first clause watching literal l or 0 if none.
   // START[j] = first cell of clause j
@@ -230,6 +230,10 @@ D8: // Failure?
   } else {
     return {Result::kUNSAT, {}};
   }
+}
+std::pair<Result, std::vector<Assignment>> D::SolveAll() {
+  COMMENT << "this solver does not support listing all satisfying assignments";
+  return {Result::kUnknown, {}};
 }
 
 } // namespace algorithm

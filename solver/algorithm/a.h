@@ -16,8 +16,12 @@ class A : public Solver {
 public:
   A() {}
 
-  std::pair<Result, std::vector<Lit>> Solve() override;
+  std::pair<Result, Assignment> Solve() override;
+  std::pair<Result, std::vector<Assignment>> SolveAll() override;
   std::string ID() const override { return "A"; }
+
+private:
+  Result SolveInternal(std::vector<Assignment> &, bool);
 };
 
 } // namespace algorithm

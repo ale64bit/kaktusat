@@ -43,6 +43,9 @@ private:
   int l;
 };
 
+using Assignment = std::vector<Lit>;
+using Clause = std::vector<Lit>;
+
 enum class Result {
   kSAT,
   kUNSAT,
@@ -61,25 +64,26 @@ public:
   Var GetVar(std::string) const;
   std::string NameOf(Var) const;
   bool IsTemp(Var) const;
-  void AddClause(std::vector<Lit>);
+  void AddClause(Clause);
   int NumVars() const { return n_; }
   int NumClauses() const { return static_cast<int>(clauses_.size()); }
   const std::vector<std::string> &GetVarNames() const;
-  const std::vector<std::vector<Lit>> &GetClauses() const;
-  bool Verify(const std::vector<Lit> &, std::string * = nullptr) const;
+  const std::vector<Clause> &GetClauses() const;
+  bool Verify(const Assignment &, std::string * = nullptr) const;
   std::string ToString(Var) const;
   std::string ToString(Lit) const;
-  std::string ToString(const std::vector<Lit> &lits, std::string sep = ", ",
+  std::string ToString(const Assignment &lits, std::string sep = ", ",
                        bool raw = false) const;
   std::string ToString() const;
 
-  virtual std::pair<Result, std::vector<Lit>> Solve() = 0;
+  virtual std::pair<Result, Assignment> Solve() = 0;
+  virtual std::pair<Result, std::vector<Assignment>> SolveAll() = 0;
   virtual std::string ID() const = 0;
 
 protected:
   int n_;
   std::vector<std::string> name_;
-  std::vector<std::vector<Lit>> clauses_;
+  std::vector<Clause> clauses_;
   std::unordered_map<std::string, Var> nameToVar_;
   int tmpID_;
   std::vector<bool> isTemp_;

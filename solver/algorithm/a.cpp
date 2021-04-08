@@ -8,7 +8,22 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> A::Solve() {
+std::pair<Result, Assignment> A::Solve() {
+  std::vector<Assignment> sol;
+  auto res = SolveInternal(sol, false);
+  if (res == Result::kSAT) {
+    return {Result::kSAT, sol.back()};
+  }
+  return {res, {}};
+}
+
+std::pair<Result, std::vector<Assignment>> A::SolveAll() {
+  std::vector<Assignment> sol;
+  auto res = SolveInternal(sol, true);
+  return {res, sol};
+}
+
+Result A::SolveInternal(std::vector<Assignment> &solutions, bool all) {
   const int n = NumVars();
 
   std::vector<int> L(2 * n + 2, 0);
@@ -64,21 +79,42 @@ A1: // Initialize.
   int l;                // chosen literal.
 
 A2: // Choose.
+  // If we want to find all satisfying assignments, we don't backtrack early and
+  // add literals while no clause is falsified.
+  if (all && d == n + 1) {
+    std::vector<Lit> ret;
+    for (int j = 1; j <= n; ++j) {
+      Var x(j);
+      ret.push_back((1 ^ (m[j] & 1)) ? x : ~x);
+    }
+    LOG << "A2: solution = [" << ToString(ret) << "]";
+    solutions.emplace_back(ret);
+    goto A6;
+  }
+
   CHECK(1 <= d && d <= n) << "depth must be 1 <= d <= n, got d=" << d;
   l = 2 * d;
   if (C[l] <= C[l + 1]) {
     ++l;
   }
-  m[d] = (l & 1) + 4 * (C[l ^ 1] == 0);
+  m[d] = (l & 1);
+  if (!all) {
+    // If we want to find all satisfying assignments, we can't use pure literals
+    // because even if we can't go wrong setting them to their respective value,
+    // there might be satisfying assignments where their value is not relevant
+    // and thus they must appear with both possible values.
+    m[d] += 4 * (C[l ^ 1] == 0);
+  }
   LOG << "A2: choose l=" << ToString(Lit(l)) << " a=" << a;
 
-  if (C[l] == a) {
+  if (!all && C[l] == a) {
     std::vector<Lit> ret;
     for (int j = 1; j <= d; ++j) {
       Var x(j);
       ret.push_back((1 ^ (m[j] & 1)) ? x : ~x);
     }
-    return {Result::kSAT, ret};
+    solutions.emplace_back(ret);
+    return Result::kSAT;
   }
 
 A3: // Remove ~l.
@@ -129,7 +165,7 @@ A5: // Try again.
 
 A6: // Backtrack.
   if (d == 1) {
-    return {Result::kUNSAT, {}};
+    return solutions.empty() ? Result::kUNSAT : Result::kSAT;
   } else {
     --d;
     l = 2 * d + (m[d] & 1);

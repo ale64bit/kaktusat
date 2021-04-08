@@ -8,7 +8,7 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> B::Solve() {
+std::pair<Result, Assignment> B::Solve() {
   // L[i]     = i-th cell's literal.
   // W[l]     = first clause watching literal l or 0 if none.
   // START[j] = first cell of clause j
@@ -106,6 +106,10 @@ B6: // Backtrack.
   --d;
   LOG << "B6: backtrack with d=" << d;
   goto B5;
+}
+std::pair<Result, std::vector<Assignment>> B::SolveAll() {
+  COMMENT << "this solver does not support listing all satisfying assignments";
+  return {Result::kUnknown, {}};
 }
 
 } // namespace algorithm

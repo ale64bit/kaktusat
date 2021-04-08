@@ -3,7 +3,9 @@
 namespace solver {
 namespace algorithm {
 
-std::pair<Result, std::vector<Lit>> Nop::Solve() {
+std::pair<Result, Assignment> Nop::Solve() { return {Result::kUnknown, {}}; }
+
+std::pair<Result, std::vector<Assignment>> Nop::SolveAll() {
   return {Result::kUnknown, {}};
 }
 
