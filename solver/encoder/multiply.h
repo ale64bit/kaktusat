@@ -25,7 +25,7 @@ namespace encoder {
  * @see: 7.2.2.2 - p9
  * @see: 7.2.2.2 - exercise 41, p136
  */
-void Multiplication(Solver &, int m, int n);
+void Multiply(Solver &, int m, int n);
 
 } // namespace encoder
 } // namespace solver

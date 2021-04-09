@@ -3,6 +3,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "encoder",
     srcs = [
+        "anti_maximal_element.cpp",
         "cardinality.cpp",
         "circuit.cpp",
         "coloring.cpp",
@@ -10,9 +11,8 @@ cc_library(
         "encoder.cpp",
         "factor.cpp",
         "langford.cpp",
-        "mult.cpp",
+        "multiply.cpp",
         "mutilated_chessboard.cpp",
-        "partial_order.cpp",
         "pigeonhole.cpp",
         "rand.cpp",
         "sample.cpp",
@@ -20,6 +20,7 @@ cc_library(
         "waerden.cpp",
     ],
     hdrs = [
+        "anti_maximal_element.h",
         "cardinality.h",
         "circuit.h",
         "coloring.h",
@@ -27,9 +28,8 @@ cc_library(
         "encoder.h",
         "factor.h",
         "langford.h",
-        "mult.h",
+        "multiply.h",
         "mutilated_chessboard.h",
-        "partial_order.h",
         "pigeonhole.h",
         "rand.h",
         "sample.h",

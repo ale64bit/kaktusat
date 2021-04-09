@@ -34,12 +34,3 @@ cc_test(
         "@gtest//:gtest_main",
     ],
 )
-
-cc_binary(
-    name = "stress",
-    srcs = ["stress.cpp"],
-    deps = [
-        "//solver/algorithm",
-        "//solver/encoder",
-    ],
-)

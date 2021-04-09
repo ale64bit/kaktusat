@@ -13,7 +13,7 @@ namespace encoder {
  *
  * @see: 7.2.2.2 - (99), (100), (101) - p56
  */
-void ImpossiblePartialOrder(Solver &, int);
+void AntiMaximalElement(Solver &, int);
 
 } // namespace encoder
 } // namespace solver

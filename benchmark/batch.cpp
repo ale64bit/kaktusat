@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 
@@ -40,6 +41,8 @@ int main(int argc, char *argv[]) {
 
   int cnt = 1;
   double total = 0;
+  double minTime = std::numeric_limits<double>::max();
+  double maxTime = std::numeric_limits<double>::min();
   for (const auto &p : fs::directory_iterator(dir)) {
     if (p.path().extension() != ".cnf") {
       continue;
@@ -67,8 +70,15 @@ int main(int argc, char *argv[]) {
     std::cout << cnt << ": " << p.path() << ": ok in " << std::fixed
               << std::setprecision(3) << diff.count() << " sec" << '\n';
     total += diff.count();
+    minTime = std::min(minTime, diff.count());
+    maxTime = std::max(maxTime, diff.count());
     ++cnt;
   }
   std::cout << "all ok in " << std::fixed << std::setprecision(3) << total
-            << " sec" << std::endl;
+            << " sec" << '\n'
+            << "\tavg_time = " << (total / cnt) << " sec\n"
+            << "\tmin_time = " << minTime << " sec\n"
+            << "\tmax_time = " << maxTime << " sec" << std::endl;
+
+  return 0;
 }

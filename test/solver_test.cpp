@@ -9,13 +9,13 @@
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/i0.h"
 #include "solver/algorithm/z.h"
+#include "solver/encoder/anti_maximal_element.h"
 #include "solver/encoder/cardinality.h"
 #include "solver/encoder/coloring.h"
 #include "solver/encoder/encoder.h"
 #include "solver/encoder/factor.h"
 #include "solver/encoder/langford.h"
 #include "solver/encoder/mutilated_chessboard.h"
-#include "solver/encoder/partial_order.h"
 #include "solver/encoder/pigeonhole.h"
 #include "solver/encoder/sample.h"
 #include "solver/encoder/waerden.h"
@@ -29,7 +29,6 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
   solvers.emplace_back(new solver::algorithm::B());
   solvers.emplace_back(new solver::algorithm::D());
   solvers.emplace_back(new solver::algorithm::I0());
-  // solvers.emplace_back(new solver::algorithm::Z());
   return solvers;
 }
 
@@ -82,7 +81,7 @@ std::vector<BuildFn> AllUNSATEncoders() {
         solver::encoder::AtLeast(s, x, 4);
         solver::encoder::AtMost(s, x, 3);
       },
-      [](solver::Solver &s) { solver::encoder::ImpossiblePartialOrder(s, 3); },
+      [](solver::Solver &s) { solver::encoder::AntiMaximalElement(s, 3); },
       [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 3); },
       [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 4); },
       [](solver::Solver &s) { solver::encoder::MutilatedChessboard(s, 4); },

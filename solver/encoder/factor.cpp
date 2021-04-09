@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "solver/encoder/mult.h"
+#include "solver/encoder/multiply.h"
 #include "util/log.h"
 
 namespace solver {
@@ -31,7 +31,7 @@ void Factor(Solver &solver, int m, int n, std::vector<int> zz) {
   }
 
   // Encode a multiplication instance.
-  Multiplication(solver, m, n);
+  Multiply(solver, m, n);
 
   // Get the variables corresponding to the product.
   std::vector<Lit> z;

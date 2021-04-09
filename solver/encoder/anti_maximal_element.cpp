@@ -1,4 +1,4 @@
-#include "solver/encoder/partial_order.h"
+#include "solver/encoder/anti_maximal_element.h"
 
 #include <string>
 #include <vector>
@@ -8,7 +8,7 @@
 namespace solver {
 namespace encoder {
 
-void ImpossiblePartialOrder(Solver &solver, int m) {
+void AntiMaximalElement(Solver &solver, int m) {
   CHECK(m > 0) << "there must be at least one element";
 
   std::vector<std::vector<Var>> x(m);

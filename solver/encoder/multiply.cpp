@@ -1,4 +1,4 @@
-#include "solver/encoder/mult.h"
+#include "solver/encoder/multiply.h"
 
 #include <stack>
 #include <string>
@@ -10,7 +10,7 @@
 namespace solver {
 namespace encoder {
 
-void Multiplication(Solver &solver, int m, int n) {
+void Multiply(Solver &solver, int m, int n) {
   // Create the variables encoding the solution.
   std::vector<Var> x;
   std::vector<Var> y;
