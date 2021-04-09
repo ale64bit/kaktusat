@@ -33,12 +33,13 @@ std::pair<Result, Assignment> D::Solve() {
   std::vector<int> x(NumVars() + 1, 0);
   std::vector<int> h(NumVars() + 1, 0);
 
-  // m[j] = 0: trying x[h[j]], didn't try ~x[h[j]] yet.
-  // m[j] = 1: trying ~x[h[j]], didn't try x[h[j]] yet.
-  // m[j] = 2: trying x[h[j]], after ~x[h[j]] failed.
-  // m[j] = 3: trying ~x[h[j]], after x[h[j]] failed.
-  // m[j] = 4: trying x[h[j]], forced by unit clause.
-  // m[j] = 5: trying ~x[h[j]], forced by unit clause.
+  // Move codes:
+  //   m[j] = 0: trying x[h[j]], didn't try ~x[h[j]] yet.
+  //   m[j] = 1: trying ~x[h[j]], didn't try x[h[j]] yet.
+  //   m[j] = 2: trying x[h[j]], after ~x[h[j]] failed.
+  //   m[j] = 3: trying ~x[h[j]], after x[h[j]] failed.
+  //   m[j] = 4: trying x[h[j]], forced by unit clause.
+  //   m[j] = 5: trying ~x[h[j]], forced by unit clause.
   std::vector<int> m(NumVars() + 1, 0);
 
   // Build the clause data structure and watch lists.
@@ -56,9 +57,11 @@ std::pair<Result, Assignment> D::Solve() {
 
 D1: // Initialize.
 
-  int d = 0; // depth of implicit search tree.
-  int k;     // current variable.
-  int f;     // whether a literal is unit.
+  int d = 0;              // depth of implicit search tree.
+  int k;                  // current variable.
+  int f;                  // whether a literal is unit.
+  int branchScore = 0;    // score used to select the best branching variable.
+  int bestBranchTail = 0; // tail to the best branching variable in the ring.
   m[0] = 0;
   head = 0;
   tail = 0;
@@ -91,6 +94,7 @@ D2: // Success?
     return {Result::kSAT, ret};
   }
   k = tail;
+  branchScore = 0;
 
 D3: // Look for unit clauses.
   head = NEXT[k];
@@ -98,6 +102,7 @@ D3: // Look for unit clauses.
       << "head must be a valid variable, got head=" << head;
   // Check if variable k is watched by some unit clause.
   f = 0;
+  int len = 0; // len of the current watchlist.
   for (int l : {2 * head + 1, 2 * head}) {
     f *= 2;
     for (int j = W[l]; j != 0; j = LINK[j]) {
@@ -118,7 +123,14 @@ D3: // Look for unit clauses.
         f += 1;
         break;
       }
+      ++len;
     }
+  }
+  // Select the branching variable with the largest watched literal count.
+  // @see: 7.2.2.2 - exercise 131, p144
+  if (len > branchScore) {
+    branchScore = len;
+    bestBranchTail = k;
   }
   CHECK(0 <= f && f <= 3) << "f must be between 0 and 3, got f=" << f;
   switch (f) {
@@ -142,7 +154,9 @@ D3: // Look for unit clauses.
   }
 
 D4: // Two-way branch.
+  tail = bestBranchTail;
   head = NEXT[tail];
+
   m[d + 1] = (W[2 * head] == 0) || (W[2 * head + 1] != 0);
   LOG << "D4: two-way branch with " << ToString(Var(head));
 

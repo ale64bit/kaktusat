@@ -64,12 +64,13 @@ Result A::SolveInternal(std::vector<Assignment> &solutions, bool all) {
     }
   }
 
-  // m[j] = 0: trying xj, didn't try ~xj yet.
-  // m[j] = 1: trying ~xj, didn't try xj, yet.
-  // m[j] = 2: trying xj, after ~xj failed.
-  // m[j] = 3: trying ~xj, after xj failed.
-  // m[j] = 4: trying xj, and ~xj doesn't appear.
-  // m[j] = 5: trying ~xj, and xj doesn't appear.
+  // Move codes:
+  //   m[j] = 0: trying xj, didn't try ~xj yet.
+  //   m[j] = 1: trying ~xj, didn't try xj, yet.
+  //   m[j] = 2: trying xj, after ~xj failed.
+  //   m[j] = 3: trying ~xj, after xj failed.
+  //   m[j] = 4: trying xj, and ~xj doesn't appear.
+  //   m[j] = 5: trying ~xj, and xj doesn't appear.
   std::vector<int> m(n + 1, 0);
 
 A1: // Initialize.

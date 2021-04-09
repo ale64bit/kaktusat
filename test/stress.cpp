@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
                 << '\n';
       return 1;
     }
-    std::cout << cnt << ": " << p.path() << " : ok in " << std::fixed
+    std::cout << cnt << ": " << p.path() << ": ok in " << std::fixed
               << std::setprecision(3) << diff.count() << " sec" << '\n';
     total += diff.count();
     ++cnt;

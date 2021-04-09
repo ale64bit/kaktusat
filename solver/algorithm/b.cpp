@@ -46,10 +46,11 @@ Result B::SolveInternal(std::vector<Assignment> &solutions, bool all) {
   }
   START[0] = L.size();
 
-  // m[j] = 0: trying xj, didn't try ~xj yet.
-  // m[j] = 1: trying ~xj, didn't try xj, yet.
-  // m[j] = 2: trying xj, after ~xj failed.
-  // m[j] = 3: trying ~xj, after xj failed.
+  // Move codes:
+  //   m[j] = 0: trying xj, didn't try ~xj yet.
+  //   m[j] = 1: trying ~xj, didn't try xj, yet.
+  //   m[j] = 2: trying xj, after ~xj failed.
+  //   m[j] = 3: trying ~xj, after xj failed.
   std::vector<int> m(NumVars() + 1, 0);
 
 B1: // Initialize.
