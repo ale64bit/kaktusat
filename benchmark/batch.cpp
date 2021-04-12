@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
-    std::cout << "usage: stress <algorithm> <dir>" << std::endl;
+    std::cout << "usage: batch <algorithm> <dir>" << std::endl;
     return 0;
   }
 

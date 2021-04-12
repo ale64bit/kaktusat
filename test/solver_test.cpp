@@ -33,46 +33,49 @@ std::vector<std::unique_ptr<solver::Solver>> AllSolvers() {
 }
 
 std::vector<BuildFn> AllSATEncoders() {
+  namespace enc = solver::encoder;
+  namespace graph = solver::encoder::graph;
   return {
-      [](solver::Solver &s) { solver::encoder::Unit(s); },
-      [](solver::Solver &s) { solver::encoder::Tautology(s); },
-      [](solver::Solver &s) { solver::encoder::Rprime(s); },
-      [](solver::Solver &s) { solver::encoder::Waerden(s, 3, 3, 8); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 3); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 4); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 7); },
-      [](solver::Solver &s) {
-        solver::encoder::Coloring(s, 3, solver::encoder::graph::Petersen());
-      },
-      [](solver::Solver &s) {
-        solver::encoder::Coloring(s, 4, solver::encoder::graph::McGregor3());
-      },
+      [](solver::Solver &s) { enc::Unit(s); },
+      [](solver::Solver &s) { enc::Tautology(s); },
+      [](solver::Solver &s) { enc::Rprime(s); },
+      [](solver::Solver &s) { enc::Waerden(s, 3, 3, 8); },
+      [](solver::Solver &s) { enc::Langford(s, 3); },
+      [](solver::Solver &s) { enc::Langford(s, 4); },
+      [](solver::Solver &s) { enc::Langford(s, 7); },
+      [](solver::Solver &s) { enc::Coloring(s, 3, graph::Petersen()); },
+      [](solver::Solver &s) { enc::Coloring(s, 4, graph::McGregor3()); },
+      [](solver::Solver &s) { enc::Coloring(s, 2, graph::FlowerSnark(4)); },
+      [](solver::Solver &s) { enc::Coloring(s, 3, graph::FlowerSnark(5)); },
+      [](solver::Solver &s) { enc::Coloring(s, 3, graph::FlowerSnarkLine(4)); },
+      [](solver::Solver &s) { enc::Coloring(s, 4, graph::FlowerSnarkLine(5)); },
       [](solver::Solver &s) {
         std::vector<solver::Lit> x;
         for (int i = 1; i <= 7; ++i) {
           x.push_back(s.NewVar("x" + std::to_string(i)));
         }
-        solver::encoder::AtLeast(s, x, 3);
-        solver::encoder::AtMost(s, x, 4);
+        enc::AtLeast(s, x, 3);
+        enc::AtMost(s, x, 4);
       },
-      [](solver::Solver &s) { solver::encoder::Factor(s, 2, 3, 21); },
+      [](solver::Solver &s) { enc::Factor(s, 2, 3, 21); },
   };
 }
 
 std::vector<BuildFn> AllUNSATEncoders() {
+  namespace enc = solver::encoder;
+  namespace graph = solver::encoder::graph;
   return {
-      [](solver::Solver &s) { solver::encoder::Contradiction(s); },
-      [](solver::Solver &s) { solver::encoder::R(s); },
-      [](solver::Solver &s) { solver::encoder::Waerden(s, 3, 3, 9); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 2); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 5); },
-      [](solver::Solver &s) { solver::encoder::Langford(s, 6); },
-      [](solver::Solver &s) {
-        solver::encoder::Coloring(s, 2, solver::encoder::graph::Petersen());
-      },
-      [](solver::Solver &s) {
-        solver::encoder::Coloring(s, 3, solver::encoder::graph::McGregor3());
-      },
+      [](solver::Solver &s) { enc::Contradiction(s); },
+      [](solver::Solver &s) { enc::R(s); },
+      [](solver::Solver &s) { enc::Waerden(s, 3, 3, 9); },
+      [](solver::Solver &s) { enc::Langford(s, 2); },
+      [](solver::Solver &s) { enc::Langford(s, 5); },
+      [](solver::Solver &s) { enc::Langford(s, 6); },
+      [](solver::Solver &s) { enc::Coloring(s, 2, graph::Petersen()); },
+      [](solver::Solver &s) { enc::Coloring(s, 3, graph::McGregor3()); },
+      [](solver::Solver &s) { enc::Coloring(s, 2, graph::FlowerSnark(5)); },
+      [](solver::Solver &s) { enc::Coloring(s, 2, graph::FlowerSnarkLine(4)); },
+      [](solver::Solver &s) { enc::Coloring(s, 3, graph::FlowerSnarkLine(5)); },
       [](solver::Solver &s) {
         std::vector<solver::Lit> x;
         for (int i = 1; i <= 7; ++i) {
@@ -81,12 +84,12 @@ std::vector<BuildFn> AllUNSATEncoders() {
         solver::encoder::AtLeast(s, x, 4);
         solver::encoder::AtMost(s, x, 3);
       },
-      [](solver::Solver &s) { solver::encoder::AntiMaximalElement(s, 3); },
-      [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 3); },
-      [](solver::Solver &s) { solver::encoder::Pigeonhole(s, 4); },
-      [](solver::Solver &s) { solver::encoder::MutilatedChessboard(s, 4); },
-      [](solver::Solver &s) { solver::encoder::MutilatedChessboard(s, 5); },
-      [](solver::Solver &s) { solver::encoder::Factor(s, 2, 3, 19); },
+      [](solver::Solver &s) { enc::AntiMaximalElement(s, 3); },
+      [](solver::Solver &s) { enc::Pigeonhole(s, 3); },
+      [](solver::Solver &s) { enc::Pigeonhole(s, 4); },
+      [](solver::Solver &s) { enc::MutilatedChessboard(s, 4); },
+      [](solver::Solver &s) { enc::MutilatedChessboard(s, 5); },
+      [](solver::Solver &s) { enc::Factor(s, 2, 3, 19); },
   };
 }
 

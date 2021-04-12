@@ -3,6 +3,7 @@
 #include <set>
 
 #include "solver/encoder/cardinality.h"
+#include "util/log.h"
 
 namespace solver {
 namespace encoder {
@@ -59,6 +60,49 @@ GraphEdges McGregor3() {
       {"32", "31"}, {"32", "21"}, {"32", "12"}, {"32", "02"}, {"32", "01"},
       {"32", "00"}, {"10", "00"}, {"10", "31"}, {"10", "32"},
   };
+}
+
+GraphEdges FlowerSnark(int q) {
+  CHECK(q > 0) << "order (q) must be positive, got q=" << q;
+  GraphEdges edges;
+  for (int j = 1; j <= q; ++j) {
+    edges.emplace_back("t" + std::to_string(j),
+                       "t" + std::to_string((j % q) + 1));
+    edges.emplace_back("t" + std::to_string(j), "u" + std::to_string(j));
+    edges.emplace_back("u" + std::to_string(j), "v" + std::to_string(j));
+    edges.emplace_back("u" + std::to_string(j), "w" + std::to_string(j));
+    edges.emplace_back("v" + std::to_string(j),
+                       "w" + std::to_string((j % q) + 1));
+    edges.emplace_back("w" + std::to_string(j),
+                       "v" + std::to_string((j % q) + 1));
+  }
+  return edges;
+}
+
+GraphEdges FlowerSnarkLine(int q) {
+  CHECK(q > 0) << "order size (q) must be positive, got q=" << q;
+  GraphEdges edges;
+  for (int j = 1; j <= q; ++j) {
+    edges.emplace_back("a" + std::to_string(j),
+                       "a" + std::to_string((j % q) + 1));
+    edges.emplace_back("a" + std::to_string(j), "b" + std::to_string(j));
+    edges.emplace_back("a" + std::to_string(j),
+                       "b" + std::to_string((j % q) + 1));
+    edges.emplace_back("b" + std::to_string(j), "c" + std::to_string(j));
+    edges.emplace_back("b" + std::to_string(j), "d" + std::to_string(j));
+    edges.emplace_back("c" + std::to_string(j), "d" + std::to_string(j));
+    edges.emplace_back("c" + std::to_string(j), "e" + std::to_string(j));
+    edges.emplace_back("d" + std::to_string(j), "f" + std::to_string(j));
+    edges.emplace_back("e" + std::to_string(j),
+                       "d" + std::to_string((j % q) + 1));
+    edges.emplace_back("f" + std::to_string(j),
+                       "c" + std::to_string((j % q) + 1));
+    edges.emplace_back("e" + std::to_string(j),
+                       "f" + std::to_string((j % q) + 1));
+    edges.emplace_back("f" + std::to_string(j),
+                       "e" + std::to_string((j % q) + 1));
+  }
+  return edges;
 }
 
 } // namespace graph
