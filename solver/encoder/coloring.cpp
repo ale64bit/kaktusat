@@ -18,7 +18,7 @@ void Coloring(Solver &solver, int d, GraphEdges edges, Mode mode) {
 
   for (const auto &u : vertices) {
     std::vector<Lit> lu;
-    for (int j = 0; j < d; ++j) {
+    for (int j = 1; j <= d; ++j) {
       lu.push_back(solver.NewVar(u + "_" + std::to_string(j)));
     }
     // u must have exactly one color.
@@ -27,7 +27,7 @@ void Coloring(Solver &solver, int d, GraphEdges edges, Mode mode) {
 
   for (const auto &[u, v] : edges) {
     // u and v cannot have the same color.
-    for (int j = 0; j < d; ++j) {
+    for (int j = 1; j <= d; ++j) {
       auto x = solver.GetVar(u + "_" + std::to_string(j));
       auto y = solver.GetVar(v + "_" + std::to_string(j));
       solver.AddClause({~x, ~y});
