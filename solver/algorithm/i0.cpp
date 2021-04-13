@@ -201,6 +201,7 @@ I5: // Resolve.
   i = m - 1;
   goto I4;
 }
+
 std::pair<Result, std::vector<Assignment>> I0::SolveAll() {
   COMMENT << "this solver does not support listing all satisfying assignments";
   return {Result::kUnknown, {}};

@@ -245,6 +245,7 @@ D8: // Failure?
     return {Result::kUNSAT, {}};
   }
 }
+
 std::pair<Result, std::vector<Assignment>> D::SolveAll() {
   COMMENT << "this solver does not support listing all satisfying assignments";
   return {Result::kUnknown, {}};
