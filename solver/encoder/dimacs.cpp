@@ -1,56 +1,58 @@
 #include "solver/encoder/dimacs.h"
 
-#include <array>
 #include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <fstream>
 #include <memory>
+#include <string>
 #include <vector>
+
+#include "util/log.h"
 
 namespace solver {
 namespace encoder {
 
-constexpr size_t kMaxLineLen = 1024;
-constexpr size_t kMaxFormatLen = 1024;
-
 std::string FromDimacsFile(Solver &solver, std::string filename) {
-  std::unique_ptr<std::FILE, decltype(&std::fclose)> f(
-      std::fopen(filename.c_str(), "r"), &std::fclose);
-  if (!f) {
-    return "failed to open file";
+  std::ifstream in(filename);
+  if (!in.is_open()) {
+    return "failed to open '" + filename + "'";
   }
 
   int n = 0;
   int m = 0;
-  char line[kMaxLineLen + 1];
-  char format[kMaxFormatLen + 1];
-  while (std::fgets(line, kMaxLineLen, f.get()) == line) {
-    switch (line[0]) {
+  std::string line;
+  std::string format;
+  for (std::string line; std::getline(in, line);) {
+    std::stringstream lin(line);
+    char typ;
+    lin >> typ;
+    switch (typ) {
     case 'c':
       break;
     case 'p':
-      if (std::sscanf(line + 1, " %s %d %d", format, &n, &m) != 3) {
-        return "invalid problem line '" + std::string(line) + " '";
-      }
-      if (std::strcmp(format, "cnf") != 0) {
+      lin >> format >> n >> m;
+      if (format != "cnf") {
         return "invalid format '" + std::string(format) +
                "'. Only 'cnf' is supported.";
       }
-      assert(n > 0);
-      assert(m > 0);
-      goto read_clauses;
+      if (n <= 0) {
+        return "invalid number of variables: n=" + std::to_string(n);
+      }
+      if (m < 0) {
+        return "invalid number of clauses: m=" + std::to_string(m);
+      }
       break;
     default:
-      return "unexpected line '" + std::string(line) + "'";
+      return "unexpected line '" + line + "'";
+    }
+    if (!format.empty()) {
+      break;
     }
   }
 
 read_clauses:
   for (int i = 0; i < m; ++i) {
     std::vector<Lit> clause;
-    int lit = 0;
-    while (std::fscanf(f.get(), "%d", &lit) == 1) {
+    for (int lit = 0; in >> lit;) {
       if (lit == 0)
         break;
       Var x = solver.NewOrGetVar(std::to_string(abs(lit)));
