@@ -7,6 +7,7 @@ cc_library(
         ":a2",
         ":analyze",
         ":b",
+        ":c",
         ":d",
         ":i0",
         ":nop",
@@ -32,6 +33,16 @@ cc_library(
 )
 
 cc_library(
+    name = "a2",
+    srcs = ["a2.cpp"],
+    hdrs = ["a2.h"],
+    deps = [
+        "//solver",
+        "//util",
+    ],
+)
+
+cc_library(
     name = "b",
     srcs = ["b.cpp"],
     hdrs = ["b.h"],
@@ -42,9 +53,9 @@ cc_library(
 )
 
 cc_library(
-    name = "a2",
-    srcs = ["a2.cpp"],
-    hdrs = ["a2.h"],
+    name = "c",
+    srcs = ["c.cpp"],
+    hdrs = ["c.h"],
     deps = [
         "//solver",
         "//util",

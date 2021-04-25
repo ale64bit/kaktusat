@@ -10,6 +10,7 @@
 #include "solver/algorithm/a.h"
 #include "solver/algorithm/a2.h"
 #include "solver/algorithm/b.h"
+#include "solver/algorithm/c.h"
 #include "solver/algorithm/d.h"
 #include "solver/algorithm/i0.h"
 #include "solver/encoder/dimacs.h"
@@ -29,6 +30,7 @@ int main(int argc, char *argv[]) {
   solvers["A"] = std::make_unique<solver::algorithm::A>();
   solvers["A2"] = std::make_unique<solver::algorithm::A2>();
   solvers["B"] = std::make_unique<solver::algorithm::B>();
+  solvers["C"] = std::make_unique<solver::algorithm::C>();
   solvers["D"] = std::make_unique<solver::algorithm::D>();
   solvers["I0"] = std::make_unique<solver::algorithm::I0>();
 
