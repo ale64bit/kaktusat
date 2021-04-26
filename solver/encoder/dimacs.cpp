@@ -11,10 +11,14 @@
 namespace solver {
 namespace encoder {
 
-std::string FromDimacsFile(Solver &solver, std::string filename) {
-  std::ifstream in(filename);
+std::string FromDimacsFile(Solver &solver, fs::path path) {
+  std::error_code ec;
+  if (!fs::exists(path, ec)) {
+    return "file " + path.string() + " does not exist";
+  }
+  std::ifstream in(path);
   if (!in.is_open()) {
-    return "failed to open '" + filename + "'";
+    return "failed to open " + path.string();
   }
 
   int n = 0;
@@ -62,6 +66,27 @@ read_clauses:
     clause.clear();
   }
 
+  return "";
+}
+
+std::string ToDimacsFile(Solver &solver, fs::path path) {
+  std::ofstream out(path);
+  if (!out.is_open()) {
+    return "failed to create " + path.string();
+  }
+  out << "c Variable names:\n";
+  for (const auto &name : solver.GetVarNames()) {
+    Var x = solver.GetVar(name);
+    out << "c \t" << std::setw(9) << x.ID() << " " << std::setw(18) << name
+        << " temp=" << solver.IsTemp(x) << '\n';
+  }
+  out << "p cnf " << solver.NumVars() << " " << solver.NumClauses() << '\n';
+  for (const auto &c : solver.GetClauses()) {
+    for (const auto &l : c) {
+      out << (l.IsPos() ? l.V().ID() : -l.V().ID()) << ' ';
+    }
+    out << "0\n";
+  }
   return "";
 }
 

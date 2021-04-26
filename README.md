@@ -28,7 +28,7 @@ Currently the following algorithms are implemented (listed by their correspondin
 * [A](solver/algorithm/a.h): implements **Algorithm A** (*Satisfiability by backtracking*), as presented in [[2]](#2), page 28.
 * [A2](solver/algorithm/a2.h): small variation of **Algorithm A**.
 * [Analyze](solver/algorithm/analyze.h): not really a solver, but rather an analyzer of instances, printing interesting information such as clause length statistics and redundant literals.
-* [B](solver/algorithm/b.h): implements **Algorithm B** (*Satisfiability by watching*), as presented in [[2]](#2), page 28.
+* [B](solver/algorithm/b.h): implements **Algorithm B** (*Satisfiability by watching*), as presented in [[2]](#2), page 31.
 * [C](solver/algorithm/c.h): implements **Algorithm C** (*Satisfiability by CDCL*), as presented in [[2]](#2), page 68.
 * [D](solver/algorithm/d.h): implements **Algorithm D** (*Satisfiability by cyclic DPLL*), as presented in [[2]](#2), page 33.
 * [I0](solver/algorithm/i0.h): implements **Algorithm I** (*Satisfiability by clause learning*), as presented in [[2]](#2), page 61. Or rather, a straightforward implementation of the algorithm description, since it's a family of algorithms rather than a specific one.
