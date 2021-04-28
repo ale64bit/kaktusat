@@ -18,13 +18,14 @@ struct Stats {
   int64_t numPropagations = 0;
   int64_t numLearnedClauses = 0;
   int64_t clauseLength = 0;
+  int64_t purged = 0;
 
   std::string ToString() const {
     std::stringstream out;
     out << "decisions=" << numDecisions << " conflicts=" << numConflicts
         << " propagations=" << numPropagations
-        << " learned=" << numLearnedClauses << std::setprecision(1)
-        << std::fixed << " avgClauseLen="
+        << " learned=" << numLearnedClauses << " purged=" << purged
+        << std::setprecision(1) << std::fixed << " avgClauseLen="
         << static_cast<double>(clauseLength) / numLearnedClauses;
     return out.str();
   }
@@ -101,6 +102,15 @@ public:
 
   WatchList(const std::vector<Clause> &clauses, int n)
       : clauses(clauses), w(2 * n + 2, -1) {}
+
+  // Rebuilds the watch lists from scratch using the underlying clauses.
+  void Rebuild() {
+    std::fill(w.begin(), w.end(), -1);
+    link.resize(clauses.size(), {-1, -1});
+    for (size_t i = 0; i < clauses.size(); ++i) {
+      Watch(i);
+    }
+  }
 
   // Watches clause at index k. Unit clauses are ignored.
   void Watch(int k) {
@@ -261,19 +271,24 @@ std::pair<Result, Assignment> C::Solve() {
   constexpr size_t kPurgeThreshold = std::numeric_limits<size_t>::max();
   constexpr size_t kFlushThreshold = std::numeric_limits<size_t>::max();
 
+  const size_t kInitialClauseCount = clauses_.size();
+
   // Trail data:
   //
   //   L      = trail literals
   //   reason = index of the reason clause for l or -1 if decision.
   //   lloc   = location of decision level d in the trail.
   //   b      = literals of learned clause when resolving conflicts.
+  //   used   = whether a clause is the reason of a literal in the trail.
   std::vector<int> L;
   std::vector<int> reason(2 * NumVars() + 2, -1);
   std::vector<int> lloc(NumVars() + 1, 0);
   std::vector<Lit> b;
+  std::vector<int> used;
 
   // Variable data:
   //
+  //   latestStamp     = latest stamp number in use.
   //   stamp[k]        = stamp number used when resolving conflicts.
   //   level[k]        = current level k belongs to.
   //   val[k]          = current value of k (0=pos, 1=neg, -1=unset).
@@ -284,7 +299,9 @@ std::pair<Result, Assignment> C::Solve() {
   //                     values represent true/false values, respectively.
   //                     (TODO: can it be simplified/removed?)
   //   learnedStamp[k] = stamp at which a literal was last learned. Useful for
-  //                     detecting immediately subsumed learned clauses.
+  //                     detecting immediately subsumed learned clauses. (TODO:
+  //                     can it be removed/replaced with stamp[k]?)
+  int latestStamp;
   std::vector<int> stamp(NumVars() + 1, 0);
   std::vector<int> level(NumVars() + 1);
   std::vector<int> val(NumVars() + 1, -1);
@@ -316,12 +333,12 @@ std::pair<Result, Assignment> C::Solve() {
   int cc;   // index of conflict clause.
 
   // Some closures to check whether a literal is currently free, true or false.
-  auto IsFree = [&](const Lit &l) { return val[l.V().ID()] == -1; };
+  auto IsFree = [&](const Lit &l) { return val[l.VID()] == -1; };
   auto IsTrue = [&](const Lit &l) {
-    return !IsFree(l) && l.IsPos() == (val[l.V().ID()] == 0);
+    return !IsFree(l) && l.IsPos() == (val[l.VID()] == 0);
   };
   auto IsFalse = [&](const Lit &l) {
-    return !IsFree(l) && l.IsPos() != (val[l.V().ID()] == 0);
+    return !IsFree(l) && l.IsPos() != (val[l.VID()] == 0);
   };
 
   // Builds a string representing the current trail. Useful for debugging and
@@ -351,9 +368,8 @@ std::pair<Result, Assignment> C::Solve() {
   // @see: 7.2.2.2 - exercise 257, p155
   std::function<bool(const Clause &, const Lit &)> IsRedundant =
       [&](const Clause &c, const Lit &lit) -> bool {
-    const auto latestStamp = m + 1;
     const auto li = lit.ID();
-    const auto xi = lit.V().ID();
+    const auto xi = lit.VID();
     if (std::abs(redundant[li]) == latestStamp) {
       return redundant[li] > 0;
     }
@@ -366,7 +382,7 @@ std::pair<Result, Assignment> C::Solve() {
       return false;
     }
     for (const auto &ll : clauses_[reason[li ^ 1]]) {
-      const auto xj = ll.V().ID();
+      const auto xj = ll.VID();
       if (IsFalse(ll)) {
         // Instead of checking naively whether xj belongs to the learned clause,
         // we can use the stamp and level.
@@ -384,6 +400,7 @@ std::pair<Result, Assignment> C::Solve() {
 C1: // Initialize.
   L.reserve(NumVars() + 1);
   for (int i = 0; i < NumClauses(); ++i) {
+    used.push_back(0);
     if (clauses_[i].empty()) { // empty clause
       return {Result::kUNSAT, {}};
     } else if (clauses_[i].size() == 1) { // unit clause
@@ -395,18 +412,20 @@ C1: // Initialize.
                 << ToString(~clauses_[i][0]) << ")";
         return {Result::kUNSAT, {}};
       }
-      const int x0 = clauses_[i][0].V().ID();
+      const int x0 = clauses_[i][0].VID();
       tloc[x0] = static_cast<int>(L.size());
       val[x0] = clauses_[i][0].IsPos() ? 0 : 1;
       level[x0] = 0;
       L.push_back(clauses_[i][0].ID());
       reason[clauses_[i][0].ID()] = i;
+      used.back() = clauses_[i][0].ID();
     }
     w.Watch(i);
   }
   m = 0;
   d = 0;
   g = 0;
+  latestStamp = 1;
 
 C2: // Level complete?
   if (g == L.size()) {
@@ -461,11 +480,12 @@ C3: // Advance G.
         LOG << "C4: L(" << L.size() << ")=" << ToString(c[0])
             << " forced with reason (" << ToString(clauses_[*it]) << ")";
         const int l0 = c[0].ID();
-        const int x0 = c[0].V().ID();
+        const int x0 = c[0].VID();
         tloc[x0] = static_cast<int>(L.size());
         val[x0] = c[0].IsPos() ? 0 : 1;
         level[x0] = d;
         L.push_back(l0);
+        used[*it] = l0;
         reason[l0] = *it;
         ++it;
         ++stats.numPropagations;
@@ -542,8 +562,8 @@ C7: // Resolve a conflict.
     for (const auto &ll : clauses_[cc]) {
       const int li = (~ll).ID();
       const int ai = li >> 1;
-      if (stamp[ai] < m + 1) {
-        stamp[ai] = m + 1;
+      if (stamp[ai] < latestStamp) {
+        stamp[ai] = latestStamp;
         heap.Inc(ai);
         if (level[ai] == d) {
           ++dcnt;
@@ -554,7 +574,7 @@ C7: // Resolve a conflict.
     }
     for (size_t tt = L.size() - 1;; --tt) {
       // We only consider stamped literals.
-      if (stamp[L[tt] >> 1] == m + 1) {
+      if (stamp[L[tt] >> 1] == latestStamp) {
         // When there's only one literal left from level d, we complete the
         // learned claused.
         if (dcnt == 1) {
@@ -568,8 +588,8 @@ C7: // Resolve a conflict.
         for (const auto &ll : clauses_[reason[L[tt]]]) {
           const int li = (~ll).ID();
           const int ai = li >> 1;
-          if (stamp[ai] < m + 1) {
-            stamp[ai] = m + 1;
+          if (stamp[ai] < latestStamp) {
+            stamp[ai] = latestStamp;
             heap.Inc(ai);
             if (level[ai] == d) {
               ++dcnt;
@@ -582,11 +602,11 @@ C7: // Resolve a conflict.
       }
     }
 
-    CHECK(level[b[0].V().ID()] == d)
+    CHECK(level[b[0].VID()] == d)
         << "l'=" << ToString(b[0]) << " should be on level d=" << d
-        << " but it is on level " << level[b[0].V().ID()];
+        << " but it is on level " << level[b[0].VID()];
     for (size_t i = 1; i < b.size(); ++i) {
-      CHECK(level[b[i].V().ID()] < d)
+      CHECK(level[b[i].VID()] < d)
           << "there must be a single literal in level d in clause ("
           << ToString(b) << ")" << TrailString();
     }
@@ -605,8 +625,8 @@ C7: // Resolve a conflict.
     // Calculate the backjump level.
     dd = 0;
     for (const auto &ll : b) {
-      if (level[ll.V().ID()] < d) {
-        dd = std::max(dd, level[ll.V().ID()]);
+      if (level[ll.VID()] < d) {
+        dd = std::max(dd, level[ll.VID()]);
       }
     }
     CHECK(dd < d) << "backjump level d'=" << dd
@@ -620,7 +640,10 @@ C8: // Backjump.
     old[k] = val[k];
     val[k] = -1;
     level[k] = -1;
-    reason[l] = -1;
+    if (reason[l] != -1) {
+      used[reason[l]] = 0;
+      reason[l] = -1;
+    }
     if (!heap.Contains(k)) {
       heap.Push(k);
     }
@@ -638,11 +661,11 @@ C9: // Learn.
   // Check immediate subsumption.
   // @see: 7.2.2.2 - exercise 271, p156
   const bool subsumes =
-      std::all_of(
-          b.begin(), b.end(),
-          [&](const Lit &lit) { return learnedStamp[lit.ID()] == m; }) &&
-      std::find(reason.begin(), reason.end(),
-                static_cast<int>(clauses_.size() - 1)) == reason.end();
+      std::all_of(b.begin(), b.end(),
+                  [&](const Lit &lit) {
+                    return learnedStamp[lit.ID()] == latestStamp - 1;
+                  }) &&
+      !used[static_cast<int>(clauses_.size() - 1)];
   if (subsumes) {
     LOG << "C9: learned clause (" << ToString(b) << "), immediately subsuming ("
         << ToString(clauses_.back()) << ")";
@@ -652,16 +675,20 @@ C9: // Learn.
 
     w.Forget(static_cast<int>(clauses_.size() - 1));
     clauses_.pop_back();
+    used.pop_back();
+    --m;
   } else {
     LOG << "C9: learned clause (" << ToString(b) << ")";
   }
 
   // Update learned stamps.
   for (const auto &lit : b) {
-    learnedStamp[lit.ID()] = m + 1;
+    learnedStamp[lit.ID()] = latestStamp;
   }
+  ++latestStamp;
   // Add new clause.
   clauses_.push_back(b);
+  used.push_back(ll);
   ++m;
   // Update variable data.
   val[k] = ll & 1;
@@ -674,7 +701,7 @@ C9: // Learn.
   heap.Damp();
   // Update watches.
   w.Watch(static_cast<int>(clauses_.size() - 1));
-
+  // Update stats.
   ++stats.numLearnedClauses;
   stats.clauseLength += static_cast<int64_t>(b.size());
 
