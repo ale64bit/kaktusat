@@ -30,7 +30,7 @@ void Multiply(Solver &solver, int m, int n) {
   for (int i = 0; i < m; ++i) {
     for (int j = 0; j < n; ++j) {
       Var pij =
-          solver.NewVar("p" + std::to_string(i) + "_" + std::to_string(j));
+          solver.NewTempVar("p" + std::to_string(i) + "_" + std::to_string(j));
       bin[i + j].push(pij);
       And(solver, pij, x[i], y[j]);
     }

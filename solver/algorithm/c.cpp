@@ -4,11 +4,31 @@
 #include <iomanip>
 #include <limits>
 #include <numeric>
+#include <random>
+#include <sstream>
 
 #include "util/log.h"
 
 namespace solver {
 namespace algorithm {
+
+struct Stats {
+  int64_t numDecisions = 0;
+  int64_t numConflicts = 0;
+  int64_t numPropagations = 0;
+  int64_t numLearnedClauses = 0;
+  int64_t clauseLength = 0;
+
+  std::string ToString() const {
+    std::stringstream out;
+    out << "decisions=" << numDecisions << " conflicts=" << numConflicts
+        << " propagations=" << numPropagations
+        << " learned=" << numLearnedClauses << std::setprecision(1)
+        << std::fixed << " avgClauseLen="
+        << static_cast<double>(clauseLength) / numLearnedClauses;
+    return out.str();
+  }
+};
 
 // Watch lists for watching 2 literals per clause.
 class WatchList {
@@ -61,6 +81,15 @@ public:
       return *this;
     }
 
+    // Erase current clause from l's watch list and advances the iterator.
+    Iterator &Erase() {
+      CHECK(0 <= cur && cur < static_cast<int>(link.size()))
+          << "current clause is out of range: cur=" << cur;
+      *ptr = link[cur][clauses[cur][0] != l];
+      cur = *ptr;
+      return *this;
+    }
+
   private:
     const std::vector<Clause> &clauses;
     const int l;
@@ -73,17 +102,28 @@ public:
   WatchList(const std::vector<Clause> &clauses, int n)
       : clauses(clauses), w(2 * n + 2, -1) {}
 
-  // Watches a new clause. Unit clauses are ignored but taken into account for
-  // their indices.
-  void Watch(const Clause &c) {
-    link.push_back({-1, -1});
-    const int idx = static_cast<int>(link.size() - 1);
+  // Watches clause at index k. Unit clauses are ignored.
+  void Watch(int k) {
+    link.resize(clauses.size(), {-1, -1});
+    const Clause &c = clauses[k];
     if (c.size() == 1) {
       return;
     }
     for (size_t off = 0; off < 2; ++off) {
-      link[idx][off] = w[c[off].ID()];
-      w[c[off].ID()] = idx;
+      link[k][off] = w[c[off].ID()];
+      w[c[off].ID()] = k;
+    }
+  }
+
+  // Removes the clause with index k from the watch lists.
+  void Forget(int k) {
+    for (int off = 0; off < 2; ++off) {
+      auto it = Iterate(clauses[k][off].ID());
+      while (*it != k) {
+        ++it;
+      }
+      CHECK(*it == k) << "forgotten clause must appear in the watch list";
+      it.Erase();
     }
   }
 
@@ -106,8 +146,18 @@ public:
   ActivityHeap(int size)
       : n(size), h(size + 1), loc(size + 1), act(size + 1, 0),
         scalingFactor(1) {
-    std::iota(h.begin(), h.end(), 0);
-    std::iota(loc.begin(), loc.end(), 0);
+
+    std::random_device rdev;
+    std::mt19937 rgen(rdev());
+
+    std::vector<int> p(n);
+    std::iota(p.begin(), p.end(), 1);
+    std::shuffle(p.begin(), p.end(), rgen);
+
+    std::copy(p.begin(), p.end(), h.begin() + 1);
+    for (int k = 1; k <= n; ++k) {
+      loc[h[k]] = k;
+    }
   }
 
   // Removes and returns the variable with highest activity.
@@ -123,6 +173,7 @@ public:
 
   // Adds a variable back to the heap.
   void Push(int k) {
+    CHECK(loc[k] == 0) << "duplicate variable insert: k=" << k;
     ++n;
     loc[k] = n;
     h[n] = k;
@@ -132,6 +183,8 @@ public:
   // Increments the activity of variable k by the scaling factor.
   // If overflow occurrs, scores and scaling factor are downscaled.
   void Inc(int k) {
+    CHECK(scalingFactor > 0)
+        << "scaling factor must be positive to maintain the heap invariant";
     act[k] += scalingFactor;
     if (act[k] > kMaxActivity) {
       for (int i = 1; i <= n; ++i) {
@@ -153,6 +206,24 @@ public:
 
   // Checks whether the heap is empty.
   bool Empty() const { return n == 0; }
+
+  void CheckIntegrity() const {
+    for (int k = 1; k <= n; ++k) {
+      if (loc[k] > 0) {
+        CHECK(h[loc[k]] == k)
+            << "corrupt heap: misplaced variable k=" << k << ": loc[" << k
+            << "]=" << loc[k] << " but h[" << loc[k] << "]=" << h[loc[k]];
+      }
+    }
+    for (int j = 2; j <= n; ++j) {
+      CHECK(act[h[j >> 1]] >= act[h[j]])
+          << "corrupt heap: n=" << n << " h[" << (j >> 1) << "]=" << h[j >> 1]
+          << " h[" << j << "]=" << h[j] << " act[" << h[j >> 1]
+          << "]=" << act[h[j >> 1]] << " act[" << h[j] << "]=" << act[h[j]]
+          << " loc[" << h[j >> 1] << "]=" << loc[h[j >> 1]] << " loc[" << h[j]
+          << "]=" << loc[h[j]];
+    }
+  }
 
 private:
   int n;
@@ -203,16 +274,24 @@ std::pair<Result, Assignment> C::Solve() {
 
   // Variable data:
   //
-  //   stamp[k] = stamp number used when resolving conflicts.
-  //   level[k] = current level k belongs to.
-  //   val[k]   = current value of k (0=pos, 1=neg, -1=unset).
-  //   old[k]   = old value of k, used for phase saving.
-  //   tloc[k]  = location of k in the trail, of -1 if not in the trail.
+  //   stamp[k]        = stamp number used when resolving conflicts.
+  //   level[k]        = current level k belongs to.
+  //   val[k]          = current value of k (0=pos, 1=neg, -1=unset).
+  //   old[k]          = old value of k, used for phase saving.
+  //   tloc[k]         = location of k in the trail, of -1 if not in the trail.
+  //   redundant[k]    = cache to check whether a literal is redundant with
+  //                     respect to learned clause. Positive/negative stamp
+  //                     values represent true/false values, respectively.
+  //                     (TODO: can it be simplified/removed?)
+  //   learnedStamp[k] = stamp at which a literal was last learned. Useful for
+  //                     detecting immediately subsumed learned clauses.
   std::vector<int> stamp(NumVars() + 1, 0);
   std::vector<int> level(NumVars() + 1);
   std::vector<int> val(NumVars() + 1, -1);
   std::vector<int> old(NumVars() + 1, -1);
   std::vector<int> tloc(NumVars() + 1, -1);
+  std::vector<int> redundant(2 * NumVars() + 2, 0);
+  std::vector<int> learnedStamp(2 * NumVars() + 2, -1);
 
   // Watch lists:
   //
@@ -221,6 +300,11 @@ std::pair<Result, Assignment> C::Solve() {
   // Activity heap management:
   //
   ActivityHeap<double> heap(NumVars());
+  heap.CheckIntegrity();
+
+  // Stats:
+  //
+  Stats stats;
 
   // State:
   //
@@ -259,6 +343,44 @@ std::pair<Result, Assignment> C::Solve() {
     return out.str();
   };
 
+  // Literal lit is redundant with respect to clause c and current trail if:
+  //   (a) ~lit is in the trail and either
+  //       (i) ~lit is defined at level 0 or
+  //       (ii) ~lit is not a decision and every false literal in ~lit's reason
+  //            is either in c or redundant itself.
+  // @see: 7.2.2.2 - exercise 257, p155
+  std::function<bool(const Clause &, const Lit &)> IsRedundant =
+      [&](const Clause &c, const Lit &lit) -> bool {
+    const auto latestStamp = m + 1;
+    const auto li = lit.ID();
+    const auto xi = lit.V().ID();
+    if (std::abs(redundant[li]) == latestStamp) {
+      return redundant[li] > 0;
+    }
+    if (level[xi] == 0) {
+      redundant[li] = latestStamp;
+      return true;
+    }
+    if (reason[li ^ 1] == -1) {
+      redundant[li] = -latestStamp;
+      return false;
+    }
+    for (const auto &ll : clauses_[reason[li ^ 1]]) {
+      const auto xj = ll.V().ID();
+      if (IsFalse(ll)) {
+        // Instead of checking naively whether xj belongs to the learned clause,
+        // we can use the stamp and level.
+        if ((stamp[xj] == latestStamp && level[xj] < d) || IsRedundant(c, ll)) {
+        } else {
+          redundant[li] = -latestStamp;
+          return false;
+        }
+      }
+    }
+    redundant[li] = latestStamp;
+    return true;
+  };
+
 C1: // Initialize.
   L.reserve(NumVars() + 1);
   for (int i = 0; i < NumClauses(); ++i) {
@@ -268,7 +390,7 @@ C1: // Initialize.
       LOG << "C1: L(" << L.size() << ")=" << ToString(clauses_[i][0])
           << " with reason (" << ToString(clauses_[i]) << ")";
       if (!IsFree(clauses_[i][0])) {
-        COMMENT << "C1: instance contains contradictory clauses ("
+        COMMENT << "C1: instance contains contradictory unit clauses ("
                 << ToString(clauses_[i][0]) << ") and ("
                 << ToString(~clauses_[i][0]) << ")";
         return {Result::kUNSAT, {}};
@@ -280,7 +402,7 @@ C1: // Initialize.
       L.push_back(clauses_[i][0].ID());
       reason[clauses_[i][0].ID()] = i;
     }
-    w.Watch(clauses_[i]);
+    w.Watch(i);
   }
   m = 0;
   d = 0;
@@ -346,6 +468,7 @@ C3: // Advance G.
         L.push_back(l0);
         reason[l0] = *it;
         ++it;
+        ++stats.numPropagations;
       }
     }
   }
@@ -373,11 +496,17 @@ C5: // New level?
 
 C6: // Make a decision.
   while (true) {
+    heap.CheckIntegrity();
     CHECK(!heap.Empty()) << "there must be at least a variable to decide"
                          << TrailString();
     auto k = heap.Pop();
     if (val[k] >= 0) {
       continue;
+    }
+
+    ++stats.numDecisions;
+    if (stats.numDecisions % 10000 == 0) {
+      LOG << "stats: " << stats.ToString();
     }
 
     l = 2 * k + (old[k] & 1);
@@ -406,6 +535,8 @@ C7: // Resolve a conflict.
       CHECK(IsFalse(ll)) << "a conflict clause must be falsified";
     }
 
+    ++stats.numConflicts;
+
     int dcnt = 0;
     b.clear();
     for (const auto &ll : clauses_[cc]) {
@@ -428,11 +559,12 @@ C7: // Resolve a conflict.
         // learned claused.
         if (dcnt == 1) {
           b.push_back(~Lit(L[tt]));
+          std::swap(b[0], b.back());
           break;
         }
         CHECK(reason[L[tt]] != -1)
             << "reasons during clause learning cannot be decisions: t'=" << tt
-            << " L[" << tt << "]=" << L[tt];
+            << " L[" << tt << "]=" << L[tt] << TrailString();
         for (const auto &ll : clauses_[reason[L[tt]]]) {
           const int li = (~ll).ID();
           const int ai = li >> 1;
@@ -449,14 +581,27 @@ C7: // Resolve a conflict.
         --dcnt;
       }
     }
-    CHECK(level[b.back().V().ID()] == d)
-        << "l'=" << ToString(b.back()) << " should be on level d=" << d
-        << " but it is on level " << level[b.back().V().ID()];
-    for (size_t i = 0; i < b.size() - 1; ++i) {
+
+    CHECK(level[b[0].V().ID()] == d)
+        << "l'=" << ToString(b[0]) << " should be on level d=" << d
+        << " but it is on level " << level[b[0].V().ID()];
+    for (size_t i = 1; i < b.size(); ++i) {
       CHECK(level[b[i].V().ID()] < d)
           << "there must be a single literal in level d in clause ("
           << ToString(b) << ")" << TrailString();
     }
+
+    // Simplify.
+    // @see: 7.2.2.2 - exercise 257, p155
+    for (size_t i = 1; i < b.size();) {
+      if (IsRedundant(b, b[i])) {
+        std::swap(b[i], b.back());
+        b.pop_back();
+      } else {
+        ++i;
+      }
+    }
+
     // Calculate the backjump level.
     dd = 0;
     for (const auto &ll : b) {
@@ -474,6 +619,7 @@ C8: // Backjump.
     const int k = l >> 1;
     old[k] = val[k];
     val[k] = -1;
+    level[k] = -1;
     reason[l] = -1;
     if (!heap.Contains(k)) {
       heap.Push(k);
@@ -485,8 +631,35 @@ C8: // Backjump.
   LOG << "C8: backjump to d=" << d << " and G=" << g;
 
 C9: // Learn.
-  const int ll = b.back().ID();
+
+  const int ll = b[0].ID();
   const int k = ll >> 1;
+
+  // Check immediate subsumption.
+  // @see: 7.2.2.2 - exercise 271, p156
+  const bool subsumes =
+      std::all_of(
+          b.begin(), b.end(),
+          [&](const Lit &lit) { return learnedStamp[lit.ID()] == m; }) &&
+      std::find(reason.begin(), reason.end(),
+                static_cast<int>(clauses_.size() - 1)) == reason.end();
+  if (subsumes) {
+    LOG << "C9: learned clause (" << ToString(b) << "), immediately subsuming ("
+        << ToString(clauses_.back()) << ")";
+
+    --stats.numLearnedClauses;
+    stats.clauseLength -= static_cast<int64_t>(clauses_.back().size());
+
+    w.Forget(static_cast<int>(clauses_.size() - 1));
+    clauses_.pop_back();
+  } else {
+    LOG << "C9: learned clause (" << ToString(b) << ")";
+  }
+
+  // Update learned stamps.
+  for (const auto &lit : b) {
+    learnedStamp[lit.ID()] = m + 1;
+  }
   // Add new clause.
   clauses_.push_back(b);
   ++m;
@@ -500,9 +673,11 @@ C9: // Learn.
   // Update activity.
   heap.Damp();
   // Update watches.
-  w.Watch(clauses_.back());
+  w.Watch(static_cast<int>(clauses_.size() - 1));
 
-  LOG << "C9: learned clause (" << ToString(b) << ")";
+  ++stats.numLearnedClauses;
+  stats.clauseLength += static_cast<int64_t>(b.size());
+
   goto C3;
 }
 
