@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "solver/algorithm/d.h"
+#include "solver/algorithm/c.h"
 #include "solver/algorithm/nop.h"
 #include "solver/encoder/cardinality.h"
 #include "solver/encoder/encoder.h"
@@ -63,20 +63,19 @@ TEST(EncoderTest, CardinalitySAT) {
                },
            }) {
 
-        solver::algorithm::D solver;
+        solver::algorithm::C solver;
         std::vector<solver::Lit> x;
         for (int i = 1; i <= n; ++i) {
           x.push_back(solver.NewVar("x" + std::to_string(i)));
         }
 
         tt.Setup(solver, x, r);
-        solver::encoder::AtMost(solver, x, r);
         auto [res, sol] = solver.Solve();
         ASSERT_EQ(res, solver::Result::kSAT);
 
         int cnt = 0;
         for (const auto &l : sol) {
-          if (solver.NameOf(l.V())[0] == 'x' && !l.IsNeg()) {
+          if (!solver.IsTemp(l.V()) && !l.IsNeg()) {
             ++cnt;
           }
         }
