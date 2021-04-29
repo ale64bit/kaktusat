@@ -1,11 +1,13 @@
 #include "solver/algorithm/c.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <limits>
 #include <numeric>
 #include <random>
 #include <sstream>
+#include <type_traits>
 
 #include "util/log.h"
 
@@ -13,20 +15,21 @@ namespace solver {
 namespace algorithm {
 
 struct Stats {
-  int64_t numDecisions = 0;
-  int64_t numConflicts = 0;
-  int64_t numPropagations = 0;
-  int64_t numLearnedClauses = 0;
+  int64_t decisions = 0;
+  int64_t conflicts = 0;
+  int64_t propagations = 0;
+  int64_t restarts = 0;
+  int64_t learnedClauses = 0;
   int64_t clauseLength = 0;
   int64_t purged = 0;
 
   std::string ToString() const {
     std::stringstream out;
-    out << "decisions=" << numDecisions << " conflicts=" << numConflicts
-        << " propagations=" << numPropagations
-        << " learned=" << numLearnedClauses << " purged=" << purged
+    out << "decisions=" << decisions << " conflicts=" << conflicts
+        << " propagations=" << propagations << " restarts=" << restarts
+        << " learned=" << learnedClauses << " purged=" << purged
         << std::setprecision(1) << std::fixed << " avgClauseLen="
-        << static_cast<double>(clauseLength) / numLearnedClauses;
+        << static_cast<double>(clauseLength) / learnedClauses;
     return out.str();
   }
 };
@@ -172,6 +175,7 @@ public:
 
   // Removes and returns the variable with highest activity.
   int Pop() {
+    CHECK(!Empty()) << "heap cannot be empty";
     int ret = h[1];
     loc[h[n]] = 1;
     h[1] = h[n];
@@ -179,6 +183,11 @@ public:
     Heapify(1);
     loc[ret] = 0;
     return ret;
+  }
+
+  int Top() const {
+    CHECK(!Empty()) << "heap cannot be empty";
+    return h[1];
   }
 
   // Adds a variable back to the heap.
@@ -217,6 +226,10 @@ public:
   // Checks whether the heap is empty.
   bool Empty() const { return n == 0; }
 
+  // Returns the activity of variable k.
+  T GetActivity(int k) const { return act[k]; }
+
+  // Utility function to verify the integrity of the heap in debug builds.
   void CheckIntegrity() const {
     for (int k = 1; k <= n; ++k) {
       if (loc[k] > 0) {
@@ -267,9 +280,39 @@ private:
   }
 };
 
+// Reluctant doubling sequence: 1,1,2,1,1,2,4,1,1,2,1,1,2,4,8,1,1,2,1,1,...
+//
+// @see: 7.2.2.2 - (130), p80
+// @see: Luby, M., Sinclair, A., Zuckerman, D.: Optimal speedup of Las Vegas
+//       algorithms. Information Processing Letters. 47, 173–180 (1993).
+//       https://doi.org/10.1016/0020-0190(93)90029-9
+template <typename T> class ReluctantDoublingGenerator {
+  static_assert(std::is_signed<T>::value, "the generator type must be signed");
+
+public:
+  ReluctantDoublingGenerator() : u(1), v(1) {}
+
+  T operator()() {
+    T ret = v;
+    if ((u & -u) == v) {
+      ++u;
+      v = 1;
+    } else {
+      v *= 2;
+    }
+    return ret;
+  }
+
+private:
+  T u;
+  T v;
+};
+
 std::pair<Result, Assignment> C::Solve() {
   constexpr size_t kPurgeThreshold = std::numeric_limits<size_t>::max();
-  constexpr size_t kFlushThreshold = std::numeric_limits<size_t>::max();
+  // Flushing/restart parameters.
+  constexpr float kPsi = 1.f / 6;
+  constexpr float kTheta = 17.f / 16;
 
   const size_t kInitialClauseCount = clauses_.size();
 
@@ -301,7 +344,7 @@ std::pair<Result, Assignment> C::Solve() {
   //   learnedStamp[k] = stamp at which a literal was last learned. Useful for
   //                     detecting immediately subsumed learned clauses. (TODO:
   //                     can it be removed/replaced with stamp[k]?)
-  int latestStamp;
+  int latestStamp = 1;
   std::vector<int> stamp(NumVars() + 1, 0);
   std::vector<int> level(NumVars() + 1);
   std::vector<int> val(NumVars() + 1, -1);
@@ -319,18 +362,28 @@ std::pair<Result, Assignment> C::Solve() {
   ActivityHeap<double> heap(NumVars());
   heap.CheckIntegrity();
 
+  // Flushing and restarts:
+  //
+  // @see: 7.2.2.2 - p75
+  // @see: Biere, A.: Adaptive Restart Strategies for Conflict Driven SAT
+  //       Solvers. In: Theory and Applications of Satisfiability Testing – SAT
+  //       2008. pp. 28–33. Springer Berlin Heidelberg (2008)
+  int flushThreshold = 100;
+  uint32_t agility = 0;
+  ReluctantDoublingGenerator<int> rdgen;
+
   // Stats:
   //
   Stats stats;
 
   // State:
   //
-  int m;    // number of new clauses discovered.
-  int d;    // decision level.
-  int dd;   // backjump level after resolving a conflict.
-  int l;    // currently selected literal.
-  size_t g; // current trail position, behind the trail head.
-  int cc;   // index of conflict clause.
+  int m = 0;    // number of new clauses discovered.
+  int d = 0;    // decision level.
+  int dd;       // backjump level after resolving a conflict.
+  int l;        // currently selected literal.
+  size_t g = 0; // current trail position, behind the trail head.
+  int cc;       // index of conflict clause.
 
   // Some closures to check whether a literal is currently free, true or false.
   auto IsFree = [&](const Lit &l) { return val[l.VID()] == -1; };
@@ -422,10 +475,6 @@ C1: // Initialize.
     }
     w.Watch(i);
   }
-  m = 0;
-  d = 0;
-  g = 0;
-  latestStamp = 1;
 
 C2: // Level complete?
   if (g == L.size()) {
@@ -487,8 +536,9 @@ C3: // Advance G.
         L.push_back(l0);
         used[*it] = l0;
         reason[l0] = *it;
+        agility = agility - (agility >> 13) + (((old[x0] - val[x0]) & 1) << 19);
         ++it;
-        ++stats.numPropagations;
+        ++stats.propagations;
       }
     }
   }
@@ -504,15 +554,59 @@ C5: // New level?
   } else if (m >= kPurgeThreshold) {
     CHECK(false) << "purge not implemented";
     // TODO purge
-  } else if (m >= kFlushThreshold) {
-    CHECK(false) << "flush not implemented";
-    // TODO flush
-    goto C2;
-  } else {
-    ++d;
-    lloc[d] = static_cast<int>(L.size());
-    LOG << "C5: new level d=" << d << " created at i[" << d << "]=" << lloc[d];
+  } else if (m >= flushThreshold) {
+    const int delta = rdgen();
+    flushThreshold = m + delta;
+    bool flush = false;
+    const float a = agility / 2e32f;
+    // Flush schedule according to 7.2.2.2 - Table 4, p76.
+    for (int i = 0; i < 20; ++i) {
+      if (delta == (1 << i)) {
+        flush = a <= std::pow(kTheta, i) * kPsi;
+        break;
+      }
+    }
+    if (flush) {
+      int xk = heap.Top();
+      while (val[xk] >= 0) {
+        heap.Pop();
+        xk = heap.Top();
+      }
+      CHECK(xk > 0) << "invalid unassigned variable of maximum activity: xk="
+                    << xk;
+      dd = 0;
+      while (dd < d &&
+             heap.GetActivity(L[lloc[dd]] >> 1) >= heap.GetActivity(xk)) {
+        ++dd;
+      }
+      if (dd < d) {
+        LOG << "C5: flushing from d=" << d << " to d'=" << dd;
+        ++stats.restarts;
+        while (L.size() > lloc[dd + 1]) {
+          l = L.back();
+          const int k = l >> 1;
+          old[k] = val[k];
+          val[k] = -1;
+          level[k] = -1;
+          if (reason[l] != -1) {
+            used[reason[l]] = 0;
+            reason[l] = -1;
+          }
+          if (!heap.Contains(k)) {
+            heap.Push(k);
+          }
+          L.pop_back();
+        }
+        g = L.size();
+        d = dd;
+        goto C2;
+      }
+    }
   }
+
+  ++d;
+  lloc[d] = static_cast<int>(L.size());
+  LOG << "C5: new level d=" << d << " created at i[" << d << "]=" << lloc[d];
 
 C6: // Make a decision.
   while (true) {
@@ -524,9 +618,9 @@ C6: // Make a decision.
       continue;
     }
 
-    ++stats.numDecisions;
-    if (stats.numDecisions % 10000 == 0) {
-      LOG << "stats: " << stats.ToString();
+    ++stats.decisions;
+    if (stats.decisions % 10000 == 0) {
+      COMMENT << "stats: " << stats.ToString();
     }
 
     l = 2 * k + (old[k] & 1);
@@ -535,6 +629,7 @@ C6: // Make a decision.
     tloc[k] = static_cast<int>(L.size());
     L.push_back(l);
     reason[l] = -1;
+    agility = agility - (agility >> 13) + (((old[k] - val[k]) & 1) << 19);
     LOG << "C6: L[" << L.size() - 1 << "]=" << ToString(Lit(l))
         << " by decision";
     CHECK(L.size() == g + 1)
@@ -551,11 +646,11 @@ C7: // Resolve a conflict.
     CHECK(clauses_[cc][1].ID() == (l ^ 1))
         << "conflict clause cc=" << cc << " should be watching "
         << ToString(Lit(l ^ 1));
-    for (const auto &ll : clauses_[cc]) {
+    for ([[maybe_unused]] const auto &ll : clauses_[cc]) {
       CHECK(IsFalse(ll)) << "a conflict clause must be falsified";
     }
 
-    ++stats.numConflicts;
+    ++stats.conflicts;
 
     int dcnt = 0;
     b.clear();
@@ -670,13 +765,12 @@ C9: // Learn.
     LOG << "C9: learned clause (" << ToString(b) << "), immediately subsuming ("
         << ToString(clauses_.back()) << ")";
 
-    --stats.numLearnedClauses;
+    --stats.learnedClauses;
     stats.clauseLength -= static_cast<int64_t>(clauses_.back().size());
 
     w.Forget(static_cast<int>(clauses_.size() - 1));
     clauses_.pop_back();
     used.pop_back();
-    --m;
   } else {
     LOG << "C9: learned clause (" << ToString(b) << ")";
   }
@@ -699,10 +793,11 @@ C9: // Learn.
   reason[ll] = static_cast<int>(clauses_.size() - 1);
   // Update activity.
   heap.Damp();
+  agility = agility - (agility >> 13) + (((old[k] - val[k]) & 1) << 19);
   // Update watches.
   w.Watch(static_cast<int>(clauses_.size() - 1));
   // Update stats.
-  ++stats.numLearnedClauses;
+  ++stats.learnedClauses;
   stats.clauseLength += static_cast<int64_t>(b.size());
 
   goto C3;

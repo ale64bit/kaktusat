@@ -9,8 +9,8 @@ namespace solver {
 namespace transform {
 
 void Monotonic(Solver &solver) {
-  const int n = solver.NumVars();
-  const int m = solver.NumClauses();
+  [[maybe_unused]] const int n0 = solver.NumVars();
+  [[maybe_unused]] const int m0 = solver.NumClauses();
   std::vector<std::string> names = solver.GetVarNames();
   std::vector<std::vector<Lit>> clauses = solver.GetClauses();
 
@@ -36,9 +36,9 @@ void Monotonic(Solver &solver) {
     solver.AddClause(newClause);
   }
 
-  CHECK(solver.NumVars() == 2 * n)
+  CHECK(solver.NumVars() == 2 * n0)
       << "number of variables should be 2n, got " << solver.NumVars();
-  CHECK(solver.NumClauses() == m + n)
+  CHECK(solver.NumClauses() == m0 + n0)
       << "number of clauses should be m+n, got " << solver.NumClauses();
 }
 

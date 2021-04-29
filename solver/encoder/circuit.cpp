@@ -56,7 +56,8 @@ static void FullAdder1(Solver &solver, Lit t, Lit c1, Lit u, Lit v, Lit c0) {
   Or(solver, c1, y1, y2);
 }
 
-static void FullAdder2(Solver &solver, Lit t, Lit c1, Lit u, Lit v, Lit c0) {
+[[maybe_unused]] static void FullAdder2(Solver &solver, Lit t, Lit c1, Lit u,
+                                        Lit v, Lit c0) {
   // Use the direct Tseytin encoding.
   // t = u ^ v ^ c0
   solver.AddClause({u, v, c0, ~t});
