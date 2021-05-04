@@ -152,20 +152,17 @@ private:
 // A heap for managing activity scores to make branching decisions.
 // @see: 7.2.2.2 - p67
 template <typename T> class ActivityHeap {
-  static constexpr double kDampingFactor = 0.95;
-  static constexpr double kMaxActivity = 1e100;
+  static constexpr T kDampingFactor = 0.95;
+  static constexpr T kMaxActivity = 1e100;
 
 public:
-  ActivityHeap(int size)
-      : n(size), h(size + 1), loc(size + 1), act(size + 1, 0),
+  ActivityHeap(int size, std::mt19937 &rng)
+      : n(size), size(size), h(size + 1), loc(size + 1), act(size + 1, 0),
         scalingFactor(1) {
-
-    std::random_device rdev;
-    std::mt19937 rgen(rdev());
 
     std::vector<int> p(n);
     std::iota(p.begin(), p.end(), 1);
-    std::shuffle(p.begin(), p.end(), rgen);
+    std::shuffle(p.begin(), p.end(), rng);
 
     std::copy(p.begin(), p.end(), h.begin() + 1);
     for (int k = 1; k <= n; ++k) {
@@ -177,9 +174,9 @@ public:
   int Pop() {
     CHECK(!Empty()) << "heap cannot be empty";
     int ret = h[1];
-    loc[h[n]] = 1;
-    h[1] = h[n];
-    --n;
+    loc[h[size]] = 1;
+    h[1] = h[size];
+    --size;
     Heapify(1);
     loc[ret] = 0;
     return ret;
@@ -193,10 +190,10 @@ public:
   // Adds a variable back to the heap.
   void Push(int k) {
     CHECK(loc[k] == 0) << "duplicate variable insert: k=" << k;
-    ++n;
-    loc[k] = n;
-    h[n] = k;
-    FloatUp(n);
+    ++size;
+    loc[k] = size;
+    h[size] = k;
+    FloatUp(size);
   }
 
   // Increments the activity of variable k by the scaling factor.
@@ -207,7 +204,7 @@ public:
     act[k] += scalingFactor;
     if (act[k] > kMaxActivity) {
       for (int i = 1; i <= n; ++i) {
-        act[k] /= kMaxActivity;
+        act[i] /= kMaxActivity;
       }
       scalingFactor /= kMaxActivity;
     }
@@ -221,24 +218,31 @@ public:
   bool Contains(int k) const { return loc[k] > 0; }
 
   // Returns the number of variables currently in the heap.
-  int Size() const { return n; }
+  int Size() const { return size; }
 
   // Checks whether the heap is empty.
-  bool Empty() const { return n == 0; }
+  bool Empty() const { return size == 0; }
 
   // Returns the activity of variable k.
   T GetActivity(int k) const { return act[k]; }
 
   // Utility function to verify the integrity of the heap in debug builds.
   void CheckIntegrity() const {
+    CHECK(std::isfinite(scalingFactor))
+        << "corrupt heap: scalingFactor=" << scalingFactor;
     for (int k = 1; k <= n; ++k) {
+      CHECK(std::isfinite(act[k]))
+          << "corrupt heap: act[" << k << "]=" << act[k];
+      CHECK(act[k] <= kMaxActivity)
+          << "corrupt heap: act[" << k << "]=" << act[k]
+          << " > kMaxActivity=" << kMaxActivity;
       if (loc[k] > 0) {
         CHECK(h[loc[k]] == k)
             << "corrupt heap: misplaced variable k=" << k << ": loc[" << k
             << "]=" << loc[k] << " but h[" << loc[k] << "]=" << h[loc[k]];
       }
     }
-    for (int j = 2; j <= n; ++j) {
+    for (int j = 2; j <= size; ++j) {
       CHECK(act[h[j >> 1]] >= act[h[j]])
           << "corrupt heap: n=" << n << " h[" << (j >> 1) << "]=" << h[j >> 1]
           << " h[" << j << "]=" << h[j] << " act[" << h[j >> 1]
@@ -249,7 +253,8 @@ public:
   }
 
 private:
-  int n;
+  const int n;
+  int size;
   std::vector<int> h;
   std::vector<int> loc;
   std::vector<T> act;
@@ -266,7 +271,7 @@ private:
     while (true) {
       int j = i;
       for (auto ii : {2 * i, 2 * i + 1}) {
-        if (ii <= n && act[h[ii]] > act[h[j]]) {
+        if (ii <= size && act[h[ii]] > act[h[j]]) {
           j = ii;
         }
       }
@@ -309,12 +314,15 @@ private:
 };
 
 std::pair<Result, Assignment> C::Solve() {
-  constexpr size_t kPurgeThreshold = std::numeric_limits<size_t>::max();
   // Flushing/restart parameters.
   constexpr float kPsi = 1.f / 6;
   constexpr float kTheta = 17.f / 16;
 
-  const size_t kInitialClauseCount = clauses_.size();
+  const size_t kFirstLearnedClause = clauses_.size();
+
+  std::random_device rdev;
+  std::mt19937 rng(rdev());
+  std::bernoulli_distribution randDecision(.02);
 
   // Trail data:
   //
@@ -340,7 +348,6 @@ std::pair<Result, Assignment> C::Solve() {
   //   redundant[k]    = cache to check whether a literal is redundant with
   //                     respect to learned clause. Positive/negative stamp
   //                     values represent true/false values, respectively.
-  //                     (TODO: can it be simplified/removed?)
   //   learnedStamp[k] = stamp at which a literal was last learned. Useful for
   //                     detecting immediately subsumed learned clauses. (TODO:
   //                     can it be removed/replaced with stamp[k]?)
@@ -348,7 +355,7 @@ std::pair<Result, Assignment> C::Solve() {
   std::vector<int> stamp(NumVars() + 1, 0);
   std::vector<int> level(NumVars() + 1);
   std::vector<int> val(NumVars() + 1, -1);
-  std::vector<int> old(NumVars() + 1, -1);
+  std::vector<int> old(NumVars() + 1, 1);
   std::vector<int> tloc(NumVars() + 1, -1);
   std::vector<int> redundant(2 * NumVars() + 2, 0);
   std::vector<int> learnedStamp(2 * NumVars() + 2, -1);
@@ -359,7 +366,7 @@ std::pair<Result, Assignment> C::Solve() {
 
   // Activity heap management:
   //
-  ActivityHeap<double> heap(NumVars());
+  ActivityHeap<double> heap(NumVars(), rng);
   heap.CheckIntegrity();
 
   // Flushing and restarts:
@@ -371,6 +378,12 @@ std::pair<Result, Assignment> C::Solve() {
   int flushThreshold = 100;
   uint32_t agility = 0;
   ReluctantDoublingGenerator<int> rdgen;
+
+  // Purging:
+  //
+  bool purging = false;
+  int purgeLevel = -1;
+  int purgeThreshold = 10000;
 
   // Stats:
   //
@@ -487,15 +500,16 @@ C3: // Advance G.
                       << " F=" << L.size();
   l = L[g];
   ++g;
-  LOG << "C3: advance to G=" << g << ": l=" << ToString(Lit(l));
+  LOG << "C3: advance to G=" << g - 1 << ": l=" << ToString(Lit(l));
 
+  cc = -1;
   for (auto it = w.Iterate(l ^ 1); it;) {
     auto &c = clauses_[*it];
     CHECK(c.size() > 1) << "unit clauses cannot appear in watch lists";
     CHECK(c[0].ID() == (l ^ 1) || c[1].ID() == (l ^ 1))
         << "clause #" << *it << " (" << ToString(c) << ") should be watching "
         << ToString(Lit(l ^ 1)) << ", but it's watching " << ToString(c[0])
-        << " and " << ToString(c[1]);
+        << " and " << ToString(c[1]) << TrailString();
 
   C4: // Does c force a unit?
     if (c[0].ID() == (l ^ 1)) {
@@ -520,8 +534,14 @@ C3: // Advance G.
     if (!hasAlt) {
       // If there is no alternative and c[0] is false, this is a conflict.
       if (IsFalse(c[0])) {
-        cc = *it;
-        goto C7;
+        // If we are doing a purging run, we can continue and ignore the
+        // conflicts for now.
+        if (purging) {
+          ++it;
+        } else {
+          cc = *it;
+          goto C7;
+        }
       } else {
         // Otherwise, we can set c[0] if it's free.
         CHECK(IsFree(c[0]))
@@ -546,21 +566,128 @@ C3: // Advance G.
 
 C5: // New level?
   if (L.size() == NumVars()) {
-    Assignment sol;
-    for (const auto &l : L) {
-      sol.emplace_back(l);
+    // Check if we are doing a purging run, in which case, the trail now
+    // contains every variable and we can compute the literal block distance for
+    // each clause. Otherwise, we found a satisfiable assignment.
+    if (!purging) {
+      Assignment sol;
+      for (const auto &l : L) {
+        sol.emplace_back(l);
+      }
+      return {Result::kSAT, sol};
+    } else {
+      constexpr float kAlpha = 15.f / 16;
+      const int kKeepTarget = (clauses_.size() - kFirstLearnedClause) / 2;
+      std::vector<int> range(clauses_.size() - kFirstLearnedClause, 0);
+      std::array<int, 257> rangeFreq;
+      std::fill(rangeFreq.begin(), rangeFreq.end(), 0);
+      for (size_t i = kFirstLearnedClause; i < clauses_.size(); ++i) {
+        const size_t idx = i - kFirstLearnedClause;
+        if (!used[i]) {
+          // Compute literal block distance.
+          int p = 0;
+          int q = 0;
+          std::vector<std::array<int, 2>> levelFreq(NumVars() + 1, {0, 0});
+          for (const auto &lit : clauses_[i]) {
+            if (level[lit.VID()] == 0) {
+              range[idx] = 256;
+              break;
+            }
+            ++levelFreq[level[lit.VID()]][lit.IsNeg()];
+          }
+          if (range[idx] < 256) {
+            for (int i = 0; i <= NumVars(); ++i) {
+              if (levelFreq[i][0] > 0) {
+                ++p;
+              } else if (levelFreq[i][1] > 0) {
+                ++q;
+              }
+            }
+            range[idx] = std::min(
+                static_cast<int>(std::floor(16 * (p + kAlpha * q))), 255);
+          }
+        }
+        ++rangeFreq[range[idx]];
+      }
+
+      int targetRange = 1;
+      int sum = rangeFreq[0];
+      while (targetRange < 256 && sum + rangeFreq[targetRange] <= kKeepTarget) {
+        sum += rangeFreq[targetRange];
+        ++targetRange;
+      }
+      for (size_t i = kFirstLearnedClause; i < clauses_.size();) {
+        if (range[i - kFirstLearnedClause] >= targetRange) {
+          LOG << "C5: purged clause (" << ToString(clauses_[i]) << ")";
+          std::swap(clauses_[i], clauses_.back());
+          std::swap(range[i - kFirstLearnedClause], range.back());
+          if (used.back()) {
+            reason[used.back()] = i;
+          }
+          used[i] = used.back();
+          clauses_.pop_back();
+          range.pop_back();
+          used.pop_back();
+          ++stats.purged;
+        } else {
+          ++i;
+        }
+      }
+      w.Rebuild();
+
+      // Backjump to original decision level where purge was started.
+      while (L.size() > lloc[purgeLevel + 1]) {
+        l = L.back();
+        const int k = l >> 1;
+        old[k] = val[k];
+        val[k] = -1;
+        level[k] = -1;
+        if (reason[l] != -1) {
+          Clause &c = clauses_[reason[l]];
+          const bool falsified = (IsFalse(c[0]) && level[c[0].VID()] <= dd) ||
+                                 (IsFalse(c[1]) && level[c[1].VID()] <= dd);
+          if (falsified) {
+            w.Forget(reason[l]);
+            for (size_t off = 0; off < 2; ++off) {
+              if (IsFalse(c[off]) && level[c[off].VID()] <= dd) {
+                for (size_t i = 1 + off; i < c.size(); ++i) {
+                  if (!IsFalse(c[i]) || level[c[i].VID()] > dd) {
+                    std::swap(c[off], c[i]);
+                    break;
+                  }
+                }
+              }
+            }
+            w.Watch(reason[l]);
+          }
+
+          used[reason[l]] = 0;
+          reason[l] = -1;
+        }
+        if (!heap.Contains(k)) {
+          heap.Push(k);
+        }
+        L.pop_back();
+      }
+      g = L.size();
+      d = purgeLevel;
+      // End purge run.
+      purging = false;
+      purgeLevel = 0;
+      LOG << "C5: purge completed";
     }
-    return {Result::kSAT, sol};
-  } else if (m >= kPurgeThreshold) {
-    CHECK(false) << "purge not implemented";
-    // TODO purge
-  } else if (m >= flushThreshold) {
+  } else if (!purging && m >= purgeThreshold) {
+    LOG << "C5: purge run begin at level d=" << d;
+    purging = true;
+    purgeLevel = d;
+    purgeThreshold = m + 10000;
+  } else if (!purging && m >= flushThreshold) {
     const int delta = rdgen();
     flushThreshold = m + delta;
     bool flush = false;
-    const float a = agility / 2e32f;
+    const float a = agility / std::pow(2.f, 32);
     // Flush schedule according to 7.2.2.2 - Table 4, p76.
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 16; ++i) {
       if (delta == (1 << i)) {
         flush = a <= std::pow(kTheta, i) * kPsi;
         break;
@@ -589,6 +716,24 @@ C5: // New level?
           val[k] = -1;
           level[k] = -1;
           if (reason[l] != -1) {
+            Clause &c = clauses_[reason[l]];
+            const bool falsified = (IsFalse(c[0]) && level[c[0].VID()] <= dd) ||
+                                   (IsFalse(c[1]) && level[c[1].VID()] <= dd);
+            if (falsified) {
+              w.Forget(reason[l]);
+              for (size_t off = 0; off < 2; ++off) {
+                if (IsFalse(c[off]) && level[c[off].VID()] <= dd) {
+                  for (size_t i = 1 + off; i < c.size(); ++i) {
+                    if (!IsFalse(c[i]) || level[c[i].VID()] > dd) {
+                      std::swap(c[off], c[i]);
+                      break;
+                    }
+                  }
+                }
+              }
+              w.Watch(reason[l]);
+            }
+
             used[reason[l]] = 0;
             reason[l] = -1;
           }
@@ -606,43 +751,67 @@ C5: // New level?
 
   ++d;
   lloc[d] = static_cast<int>(L.size());
-  LOG << "C5: new level d=" << d << " created at i[" << d << "]=" << lloc[d];
+  LOG << "C5: new level d=" << d << " started at i[" << d << "]=" << lloc[d];
 
-C6: // Make a decision.
-  while (true) {
-    heap.CheckIntegrity();
-    CHECK(!heap.Empty()) << "there must be at least a variable to decide"
-                         << TrailString();
-    auto k = heap.Pop();
-    if (val[k] >= 0) {
-      continue;
+C6 : // Make a decision.
+{
+  int k;
+  // With small probability, take a random decision rather than using the
+  // variable with maximum activity score.
+  // @see: 7.2.2.2 - exercise 267, p155
+  if (randDecision(rng)) {
+    std::vector<int> free;
+    for (int k = 1; k <= NumVars(); ++k) {
+      if (val[k] == -1) {
+        free.push_back(k);
+      }
     }
+    std::shuffle(free.begin(), free.end(), rng);
 
-    ++stats.decisions;
-    if (stats.decisions % 10000 == 0) {
-      COMMENT << "stats: " << stats.ToString();
-    }
-
+    k = free[0];
     l = 2 * k + (old[k] & 1);
-    val[k] = (old[k] & 1);
-    level[k] = d;
-    tloc[k] = static_cast<int>(L.size());
-    L.push_back(l);
-    reason[l] = -1;
-    agility = agility - (agility >> 13) + (((old[k] - val[k]) & 1) << 19);
-    LOG << "C6: L[" << L.size() - 1 << "]=" << ToString(Lit(l))
-        << " by decision";
-    CHECK(L.size() == g + 1)
-        << "the trace should be only one step ahead: G=" << g
-        << " F=" << L.size();
-    goto C3;
+    LOG << "C6: L[" << L.size() << "]=" << ToString(Lit(l))
+        << " by random decision";
+  } else {
+    while (true) {
+      heap.CheckIntegrity();
+      CHECK(!heap.Empty()) << "there must be at least a variable to decide"
+                           << TrailString();
+      k = heap.Pop();
+      if (val[k] >= 0) {
+        continue;
+      }
+      l = 2 * k + (old[k] & 1);
+      LOG << "C6: L[" << L.size() << "]=" << ToString(Lit(l)) << " by decision";
+      break;
+    }
   }
+
+  ++stats.decisions;
+  if (stats.decisions % 10000 == 0) {
+    LOG << "C6: stats: agility=" << (agility / std::pow(2, 32)) << " "
+        << stats.ToString();
+  }
+
+  val[k] = l & 1;
+  level[k] = d;
+  tloc[k] = static_cast<int>(L.size());
+  reason[l] = -1;
+  L.push_back(l);
+  agility = agility - (agility >> 13) + (((old[k] - val[k]) & 1) << 19);
+  CHECK(L.size() == g + 1) << "the trace should be only one step ahead: G=" << g
+                           << " F=" << L.size();
+  goto C3;
+}
 
 C7: // Resolve a conflict.
   if (d == 0) {
+    COMMENT << "C6: stats: agility=" << (agility / std::pow(2, 32)) << " "
+            << stats.ToString();
     return {Result::kUNSAT, {}};
   } else {
-    LOG << "C7: resolving conflict clause (" << ToString(clauses_[cc]) << ")";
+    LOG << "C7: resolving conflict clause (" << ToString(clauses_[cc]) << ")"
+        << TrailString();
     CHECK(clauses_[cc][1].ID() == (l ^ 1))
         << "conflict clause cc=" << cc << " should be watching "
         << ToString(Lit(l ^ 1));
@@ -662,7 +831,7 @@ C7: // Resolve a conflict.
         heap.Inc(ai);
         if (level[ai] == d) {
           ++dcnt;
-        } else {
+        } else if (level[ai] > 0) {
           b.push_back(ll);
         }
       }
@@ -688,22 +857,13 @@ C7: // Resolve a conflict.
             heap.Inc(ai);
             if (level[ai] == d) {
               ++dcnt;
-            } else {
+            } else if (level[ai] > 0) {
               b.push_back(ll);
             }
           }
         }
         --dcnt;
       }
-    }
-
-    CHECK(level[b[0].VID()] == d)
-        << "l'=" << ToString(b[0]) << " should be on level d=" << d
-        << " but it is on level " << level[b[0].VID()];
-    for (size_t i = 1; i < b.size(); ++i) {
-      CHECK(level[b[i].VID()] < d)
-          << "there must be a single literal in level d in clause ("
-          << ToString(b) << ")" << TrailString();
     }
 
     // Simplify.
@@ -715,6 +875,24 @@ C7: // Resolve a conflict.
       } else {
         ++i;
       }
+    }
+
+    // Trivial clause.
+    // @see: 7.2.2.2 - exercise 23, p156
+    if (d < b.size()) {
+      b.clear();
+      for (size_t i = d; i >= 1; --i) {
+        b.push_back(~Lit(L[lloc[i]]));
+      }
+    }
+
+    CHECK(level[b[0].VID()] == d)
+        << "l'=" << ToString(b[0]) << " should be on level d=" << d
+        << " but it is on level " << level[b[0].VID()];
+    for (size_t i = 1; i < b.size(); ++i) {
+      CHECK(level[b[i].VID()] < d)
+          << "there must be a single literal in level d in clause ("
+          << ToString(b) << ")" << TrailString();
     }
 
     // Calculate the backjump level.
@@ -732,13 +910,33 @@ C8: // Backjump.
   while (L.size() > lloc[dd + 1]) {
     l = L.back();
     const int k = l >> 1;
-    old[k] = val[k];
-    val[k] = -1;
-    level[k] = -1;
     if (reason[l] != -1) {
+      // We need to make sure clauses don't end up with falsified watchees.
+      // This can probably be improved but I need to think about it.
+      Clause &c = clauses_[reason[l]];
+      const bool falsified =
+          (~c[0] != b[0] && IsFalse(c[0]) && level[c[0].VID()] <= dd) ||
+          (~c[1] != b[0] && IsFalse(c[1]) && level[c[1].VID()] <= dd);
+      if (falsified) {
+        w.Forget(reason[l]);
+        for (size_t off = 0; off < 2; ++off) {
+          if (~c[off] != b[0] && IsFalse(c[off]) && level[c[off].VID()] <= dd) {
+            for (size_t i = 1 + off; i < c.size(); ++i) {
+              if (!IsFalse(c[i]) || level[c[i].VID()] > dd) {
+                std::swap(c[off], c[i]);
+                break;
+              }
+            }
+          }
+        }
+        w.Watch(reason[l]);
+      }
       used[reason[l]] = 0;
       reason[l] = -1;
     }
+    old[k] = val[k];
+    val[k] = -1;
+    level[k] = -1;
     if (!heap.Contains(k)) {
       heap.Push(k);
     }
