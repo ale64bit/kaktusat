@@ -37,15 +37,17 @@ int main(int argc, char *argv[]) {
   auto &solver = *solvers[solverID];
 
   int cnt = 1;
-  double total = 0;
+  int sat = 0;
+  int unsat = 0;
+  double totalTime = 0;
   double minTime = std::numeric_limits<double>::max();
   double maxTime = std::numeric_limits<double>::min();
-  for (const auto &p : fs::directory_iterator(dir)) {
-    if (p.path().extension() != ".cnf") {
+  for (const auto &e : fs::recursive_directory_iterator(dir)) {
+    if (!e.is_regular_file() || e.path().extension() != ".cnf") {
       continue;
     }
     solver.Reset();
-    auto err = solver::encoder::FromDimacsFile(solver, p.path());
+    auto err = solver::encoder::FromDimacsFile(solver, e.path());
     if (!err.empty()) {
       std::cerr << "reading instance: " << err << std::endl;
       return 1;
@@ -54,26 +56,44 @@ int main(int argc, char *argv[]) {
     auto [res, sol] = solver.Solve();
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> diff = end - start;
-    if (res != solver::Result::kSAT) {
-      std::cerr << cnt << ": " << p.path() << ": bad result" << '\n';
-      return 1;
-    }
     std::string errMsg;
-    if (!solver.Verify(sol, &errMsg)) {
-      std::cerr << cnt << ": " << p.path() << ": bad verify: " << errMsg
-                << '\n';
+    switch (res) {
+    case solver::Result::kSAT:
+      if (!solver.Verify(sol, &errMsg)) {
+        std::cerr << cnt << ": " << e.path() << ": bad verify: " << errMsg
+                  << std::endl;
+        return 1;
+      }
+      ++sat;
+      break;
+    case solver::Result::kUNSAT:
+      ++unsat;
+      break;
+    case solver::Result::kUnknown:
+      std::cerr << cnt << ": " << e.path() << ": unknown" << std::endl;
       return 1;
     }
-    std::cout << cnt << ": " << p.path() << ": ok in " << std::fixed
-              << std::setprecision(3) << diff.count() << " sec" << '\n';
-    total += diff.count();
+    std::cout << cnt << ": " << e.path() << ": "
+              << (res == solver::Result::kSAT ? "SAT" : "UNSAT") << " in "
+              << std::fixed << std::setprecision(3) << diff.count() << " sec"
+              << '\n';
+    totalTime += diff.count();
     minTime = std::min(minTime, diff.count());
     maxTime = std::max(maxTime, diff.count());
     ++cnt;
   }
-  std::cout << "all ok in " << std::fixed << std::setprecision(3) << total
-            << " sec" << '\n'
-            << "\tavg_time = " << (total / cnt) << " sec\n"
+  std::cout << "all ok in " << std::fixed << std::setprecision(3) << totalTime
+            << " sec" << '\n';
+
+  if (sat == 0) {
+    std::cout << "\tall UNSAT" << '\n';
+  } else if (unsat == 0) {
+    std::cout << "\tall SAT" << '\n';
+  } else {
+    std::cout << "\t#SAT=" << sat << " #UNSAT=" << unsat << '\n';
+  }
+
+  std::cout << "\tavg_time = " << (totalTime / cnt) << " sec\n"
             << "\tmin_time = " << minTime << " sec\n"
             << "\tmax_time = " << maxTime << " sec" << std::endl;
 
