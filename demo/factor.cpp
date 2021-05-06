@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "solver/algorithm/c.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/encoder.h"
 #include "solver/encoder/factor.h"
 #include "util/log.h"
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   std::cout << "trying to find factors of at most " << b << " bits"
             << std::endl;
 
-  solver::algorithm::C solver;
+  solver::algorithm::Default solver;
   uint64_t x = 0;
   uint64_t y = 0;
 

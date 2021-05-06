@@ -3,13 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "solver/algorithm/a.h"
-#include "solver/algorithm/a2.h"
-#include "solver/algorithm/b.h"
-#include "solver/algorithm/c.h"
-#include "solver/algorithm/d.h"
-#include "solver/algorithm/i0.h"
-#include "solver/algorithm/z.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/anti_maximal_element.h"
 #include "solver/encoder/cardinality.h"
 #include "solver/encoder/coloring.h"

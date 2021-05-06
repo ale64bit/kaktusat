@@ -6,15 +6,7 @@
 #include <string>
 #include <utility>
 
-#include "solver/algorithm/a.h"
-#include "solver/algorithm/a2.h"
-#include "solver/algorithm/analyze.h"
-#include "solver/algorithm/b.h"
-#include "solver/algorithm/c.h"
-#include "solver/algorithm/d.h"
-#include "solver/algorithm/i0.h"
-#include "solver/algorithm/nop.h"
-#include "solver/algorithm/z.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/dimacs.h"
 #include "util/log.h"
 

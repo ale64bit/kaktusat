@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "solver/algorithm/c.h"
-#include "solver/algorithm/nop.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/cardinality.h"
 #include "solver/encoder/encoder.h"
 #include "solver/encoder/waerden.h"
@@ -63,7 +62,7 @@ TEST(EncoderTest, CardinalitySAT) {
                },
            }) {
 
-        solver::algorithm::C solver;
+        solver::algorithm::Default solver;
         std::vector<solver::Lit> x;
         for (int i = 1; i <= n; ++i) {
           x.push_back(solver.NewVar("x" + std::to_string(i)));

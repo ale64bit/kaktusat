@@ -2,6 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "algorithm",
+    hdrs = ["algorithm.h"],
     deps = [
         ":a",
         ":a2",

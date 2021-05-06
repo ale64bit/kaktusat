@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "solver/algorithm/c.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/sudoku.h"
 #include "util/log.h"
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  solver::algorithm::C solver;
+  solver::algorithm::Default solver;
 
   // Use the sudoku encoder.
   solver::encoder::Sudoku(solver, t);

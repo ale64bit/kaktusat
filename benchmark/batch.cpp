@@ -7,12 +7,7 @@
 #include <map>
 #include <string>
 
-#include "solver/algorithm/a.h"
-#include "solver/algorithm/a2.h"
-#include "solver/algorithm/b.h"
-#include "solver/algorithm/c.h"
-#include "solver/algorithm/d.h"
-#include "solver/algorithm/i0.h"
+#include "solver/algorithm/algorithm.h"
 #include "solver/encoder/dimacs.h"
 
 namespace fs = std::filesystem;

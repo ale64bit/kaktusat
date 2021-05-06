@@ -473,9 +473,9 @@ C1: // Initialize.
       LOG << "C1: L(" << L.size() << ")=" << ToString(clauses_[i][0])
           << " with reason (" << ToString(clauses_[i]) << ")";
       if (!IsFree(clauses_[i][0])) {
-        COMMENT << "C1: instance contains contradictory unit clauses ("
-                << ToString(clauses_[i][0]) << ") and ("
-                << ToString(~clauses_[i][0]) << ")";
+        LOG << "C1: instance contains contradictory unit clauses ("
+            << ToString(clauses_[i][0]) << ") and ("
+            << ToString(~clauses_[i][0]) << ")";
         return {Result::kUNSAT, {}};
       }
       const int x0 = clauses_[i][0].VID();
@@ -806,8 +806,8 @@ C6 : // Make a decision.
 
 C7: // Resolve a conflict.
   if (d == 0) {
-    COMMENT << "C6: stats: agility=" << (agility / std::pow(2, 32)) << " "
-            << stats.ToString();
+    LOG << "C6: stats: agility=" << (agility / std::pow(2, 32)) << " "
+        << stats.ToString();
     return {Result::kUNSAT, {}};
   } else {
     LOG << "C7: resolving conflict clause (" << ToString(clauses_[cc]) << ")"
