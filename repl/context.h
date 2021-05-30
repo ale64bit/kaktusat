@@ -10,9 +10,9 @@
 class Expr;
 
 class Context {
+public:
   using Substitution = std::map<std::string, std::unique_ptr<Expr>>;
 
-public:
   Context();
   bool Exists(std::string) const;
   std::unique_ptr<Expr> Get(std::string) const;

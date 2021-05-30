@@ -47,7 +47,3 @@ std::string SubExpr::ToString() const {
   out << ")";
   return out.str();
 }
-
-std::string LetExpr::ToString() const {
-  return "let " + id_ + " = " + expr_->ToString();
-}

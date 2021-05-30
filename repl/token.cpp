@@ -29,8 +29,22 @@ Token Token::Parse(std::string s) {
     return Token{Token::Type::kOpSub, ""};
   } else if (s == kOpCommaRepr) {
     return Token{Token::Type::kOpComma, ""};
+  } else if (s == kKeywordCheckRepr) {
+    return Token{Token::Type::kKeywordCheck, ""};
+  } else if (s == kKeywordCNFRepr) {
+    return Token{Token::Type::kKeywordCNF, ""};
+  } else if (s == kKeywordDNFRepr) {
+    return Token{Token::Type::kKeywordDNF, ""};
+  } else if (s == kKeywordDepthRepr) {
+    return Token{Token::Type::kKeywordDepth, ""};
+  } else if (s == kKeywordCheckRepr) {
+    return Token{Token::Type::kKeywordCheck, ""};
   } else if (s == kKeywordLetRepr) {
     return Token{Token::Type::kKeywordLet, ""};
+  } else if (s == kKeywordSizeRepr) {
+    return Token{Token::Type::kKeywordSize, ""};
+  } else if (s == kKeywordTTRepr) {
+    return Token{Token::Type::kKeywordTT, ""};
   } else if (std::islower(s[0])) {
     return Token{Token::Type::kVariableID, s};
   } else {
@@ -63,7 +77,14 @@ std::string Token::TypeToDescString(Token::Type type) {
   case Token::Type::kOpSub:
   case Token::Type::kOpComma:
     return "operator";
+  case Token::Type::kKeywordCheck:
+  case Token::Type::kKeywordCNF:
+  case Token::Type::kKeywordDNF:
+  case Token::Type::kKeywordDepth:
+  case Token::Type::kKeywordHelp:
   case Token::Type::kKeywordLet:
+  case Token::Type::kKeywordSize:
+  case Token::Type::kKeywordTT:
     return "keyword";
   case Token::Type::kVariableID:
     return "variable identifier";
@@ -102,8 +123,22 @@ std::string Token::ToDescString() const {
     return TypeToDescString(type) + " " + kOpSubRepr;
   case Token::Type::kOpComma:
     return TypeToDescString(type) + " " + kOpCommaRepr;
+  case Token::Type::kKeywordCheck:
+    return TypeToDescString(type) + " " + kKeywordCheckRepr;
+  case Token::Type::kKeywordCNF:
+    return TypeToDescString(type) + " " + kKeywordCNFRepr;
+  case Token::Type::kKeywordDNF:
+    return TypeToDescString(type) + " " + kKeywordDNFRepr;
+  case Token::Type::kKeywordDepth:
+    return TypeToDescString(type) + " " + kKeywordDepthRepr;
+  case Token::Type::kKeywordHelp:
+    return TypeToDescString(type) + " " + kKeywordHelpRepr;
   case Token::Type::kKeywordLet:
     return TypeToDescString(type) + " " + kKeywordLetRepr;
+  case Token::Type::kKeywordSize:
+    return TypeToDescString(type) + " " + kKeywordSizeRepr;
+  case Token::Type::kKeywordTT:
+    return TypeToDescString(type) + " " + kKeywordTTRepr;
   case Token::Type::kVariableID:
     return TypeToDescString(type) + " " + value;
   case Token::Type::kFormulaID:

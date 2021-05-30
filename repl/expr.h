@@ -2,14 +2,24 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "repl/context.h"
+#include "repl/result.h"
 #include "repl/token.h"
 
 class Context;
+
+using Lookahead = std::vector<Token>::const_iterator;
+
+struct Bindings {
+  std::set<std::string> variables;
+  std::set<std::string> formulas;
+};
 
 class Expr {
 public:
@@ -20,25 +30,30 @@ public:
     kNeg,
     kBin,
     kSub,
-    kLet,
   };
 
   virtual ~Expr() {}
   virtual std::unique_ptr<Expr> Copy() const = 0;
-  virtual std::unique_ptr<Expr> Eval(Context &) const = 0;
+  virtual Bindings CollectBindings() const = 0;
+  virtual Result<Expr> Eval(Context &) const = 0;
   virtual Tag GetTag() const = 0;
+  virtual int Size() const = 0;
+  virtual int Depth() const = 0;
   virtual std::string ToString() const = 0;
 
-  static std::unique_ptr<Expr> Parse(const std::vector<Token> &,
-                                     std::vector<std::string> &);
+  static Result<Expr> Parse(Lookahead &);
 };
 
 class ConstExpr : public Expr {
 public:
   ConstExpr(bool);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kConst; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
   bool GetValue() const { return value_; }
@@ -50,9 +65,13 @@ private:
 class VariableIDExpr : public Expr {
 public:
   VariableIDExpr(std::string id);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kVariableID; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
   std::string GetID() const { return id_; }
@@ -64,9 +83,13 @@ private:
 class FormulaIDExpr : public Expr {
 public:
   FormulaIDExpr(std::string id);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kFormulaID; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
   std::string GetID() const { return id_; }
@@ -78,9 +101,13 @@ private:
 class NegExpr : public Expr {
 public:
   NegExpr(std::unique_ptr<Expr> rhs);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kNeg; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
 private:
@@ -99,9 +126,13 @@ class BinExpr : public Expr {
 public:
   BinExpr(BinaryConnective conn, std::unique_ptr<Expr> lhs,
           std::unique_ptr<Expr> rhs);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kBin; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
 private:
@@ -113,25 +144,16 @@ private:
 class SubExpr : public Expr {
 public:
   SubExpr(std::string id, std::map<std::string, std::unique_ptr<Expr>> subs);
+
   std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
+  Bindings CollectBindings() const override;
+  Result<Expr> Eval(Context &) const override;
   Tag GetTag() const override { return Tag::kSub; };
+  int Size() const override;
+  int Depth() const override;
   std::string ToString() const override;
 
 private:
   std::string id_;
   std::map<std::string, std::unique_ptr<Expr>> subs_;
-};
-
-class LetExpr : public Expr {
-public:
-  LetExpr(std::string id, std::unique_ptr<Expr> expr);
-  std::unique_ptr<Expr> Copy() const override;
-  std::unique_ptr<Expr> Eval(Context &) const override;
-  Tag GetTag() const override { return Tag::kLet; };
-  std::string ToString() const override;
-
-private:
-  std::string id_;
-  std::unique_ptr<Expr> expr_;
 };

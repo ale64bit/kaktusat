@@ -27,7 +27,3 @@ std::unique_ptr<Expr> SubExpr::Copy() const {
   }
   return std::make_unique<SubExpr>(id_, std::move(subs));
 }
-
-std::unique_ptr<Expr> LetExpr::Copy() const {
-  return std::make_unique<LetExpr>(id_, expr_->Copy());
-}

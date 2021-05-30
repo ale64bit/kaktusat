@@ -3,10 +3,12 @@
 #include <clocale>
 #include <cstring>
 #include <curses.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include "repl/expr.h"
+#include "repl/cmd.h"
+#include "repl/parsing.h"
 #include "repl/token.h"
 #include "repl/trie.h"
 
@@ -25,17 +27,18 @@ struct Node {
 
 constexpr const char *kPrompt = "↪  ";
 
-// Count code points
-size_t ActualSize(const std::string &s) {
-  return std::count_if(s.begin(), s.end(),
-                       [](char ch) { return (ch & (0xc0)) != 0x80; });
-}
-
 class InputAutomata {
 public:
   InputAutomata() : state_(State::kEmpty) {
     // Keywords
+    trie_.Insert("check", Node(kKeywordCheckRepr, Node::Type::kKeyword));
+    trie_.Insert("cnf", Node(kKeywordCNFRepr, Node::Type::kKeyword));
+    trie_.Insert("depth", Node(kKeywordDepthRepr, Node::Type::kKeyword));
+    trie_.Insert("dnf", Node(kKeywordDNFRepr, Node::Type::kKeyword));
+    trie_.Insert("help", Node(kKeywordHelpRepr, Node::Type::kKeyword));
     trie_.Insert("let", Node(kKeywordLetRepr, Node::Type::kKeyword));
+    trie_.Insert("size", Node(kKeywordSizeRepr, Node::Type::kKeyword));
+    trie_.Insert("tt", Node(kKeywordTTRepr, Node::Type::kKeyword));
 
     // Constants
     trie_.Insert("true", Node(kConstTrueRepr, Node::Type::kConnective));
@@ -140,7 +143,18 @@ public:
             for (size_t i = 0; i < ActualSize(cur_); ++i) {
               DeleteOne();
             }
-            printw("%s", tok.c_str());
+            switch (trie_.Value(cur_node_).type) {
+            case Node::Type::kConnective:
+              printw("%s", tok.c_str());
+              break;
+            case Node::Type::kKeyword:
+              attron(A_BOLD);
+              printw("%s", tok.c_str());
+              attroff(A_BOLD);
+              break;
+            default:
+              assert(false);
+            }
             cur_ = "";
             state_ = State::kEmpty;
             cur_node_ = 0;
@@ -318,15 +332,18 @@ public:
     }
     tokens.emplace_back(Token{Token::Type::kEOL, ""});
 
-    std::vector<std::string> errors;
-    auto expr = Expr::Parse(tokens, errors);
-    if (expr) {
-      expr = expr->Eval(ctx);
-      printw("\n\tres: %s\n", expr->ToString().c_str());
-    } else {
-      printw("\n\tthere are errors:\n");
-      for (const auto &err : errors) {
-        printw("\t\terror: %s\n", err.c_str());
+    printw("\n");
+    if (tokens.size() > 1) {
+      auto lookahead = tokens.cbegin();
+      auto parseResult = Cmd::Parse(lookahead);
+      if (ResultOK(parseResult)) {
+        std::get<std::unique_ptr<Cmd>>(parseResult)->Eval(ctx);
+      } else {
+        auto errors = std::get<std::vector<std::string>>(parseResult);
+        assert(!errors.empty());
+        for (const auto &err : errors) {
+          printw("\terror: %s\n", err.c_str());
+        }
       }
     }
 
