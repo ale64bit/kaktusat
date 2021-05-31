@@ -11,6 +11,7 @@
 #include "repl/context.h"
 #include "repl/result.h"
 #include "repl/token.h"
+#include "solver/solver.h"
 
 class Context;
 
@@ -39,6 +40,7 @@ public:
   virtual Tag GetTag() const = 0;
   virtual int Size() const = 0;
   virtual int Depth() const = 0;
+  virtual solver::Var ToSolver(solver::Solver &) const = 0;
   virtual std::string ToString() const = 0;
 
   static Result<Expr> Parse(Lookahead &);
@@ -54,6 +56,7 @@ public:
   Tag GetTag() const override { return Tag::kConst; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
   bool GetValue() const { return value_; }
@@ -72,6 +75,7 @@ public:
   Tag GetTag() const override { return Tag::kVariableID; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
   std::string GetID() const { return id_; }
@@ -90,6 +94,7 @@ public:
   Tag GetTag() const override { return Tag::kFormulaID; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
   std::string GetID() const { return id_; }
@@ -108,6 +113,7 @@ public:
   Tag GetTag() const override { return Tag::kNeg; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
 private:
@@ -133,6 +139,7 @@ public:
   Tag GetTag() const override { return Tag::kBin; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
 private:
@@ -151,6 +158,7 @@ public:
   Tag GetTag() const override { return Tag::kSub; };
   int Size() const override;
   int Depth() const override;
+  solver::Var ToSolver(solver::Solver &) const override;
   std::string ToString() const override;
 
 private:

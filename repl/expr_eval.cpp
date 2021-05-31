@@ -61,6 +61,8 @@ Result<Expr> BinExpr::Eval(Context &ctx) const {
   case BinaryConnective::kAnd:
     if (HasValue(lhs) && HasValue(rhs)) {
       return std::make_unique<ConstExpr>(GetValue(lhs) && GetValue(rhs));
+    } else if (IsFalse(lhs) || IsFalse(rhs)) {
+      return std::make_unique<ConstExpr>(false);
     } else if (IsTrue(lhs)) {
       return rhs;
     } else if (IsTrue(rhs)) {
@@ -70,6 +72,8 @@ Result<Expr> BinExpr::Eval(Context &ctx) const {
   case BinaryConnective::kOr:
     if (HasValue(lhs) && HasValue(rhs)) {
       return std::make_unique<ConstExpr>(GetValue(lhs) || GetValue(rhs));
+    } else if (IsTrue(lhs) || IsTrue(rhs)) {
+      return std::make_unique<ConstExpr>(true);
     } else if (IsFalse(lhs)) {
       return rhs;
     } else if (IsFalse(rhs)) {

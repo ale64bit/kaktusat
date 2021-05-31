@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "repl/context.h"
+#include "solver/algorithm/algorithm.h"
 
 template <typename T> void PrintErrors(const Result<T> &res) {
   auto errors = std::get<std::vector<std::string>>(res);
@@ -220,4 +221,45 @@ void TTCmd::Eval(Context &ctx) const {
   addch(ACS_LRCORNER);
   attroff(A_ALTCHARSET);
   addch('\n');
+}
+
+void CheckCmd::Eval(Context &ctx) const {
+  auto res = expr_->Eval(ctx);
+  if (!ResultOK(res)) {
+    PrintErrors(res);
+    return;
+  }
+
+  const auto &expr = std::get<std::unique_ptr<Expr>>(res);
+  std::unique_ptr<Expr> neg = std::make_unique<NegExpr>(expr->Copy());
+
+  solver::algorithm::Default sat, taut;
+  auto satRoot = expr->ToSolver(sat);
+  auto tautRoot = neg->ToSolver(taut);
+  sat.AddClause({satRoot});
+  taut.AddClause({tautRoot});
+
+  auto [satRes, satModel] = sat.Solve();
+  auto [tautRes, tautModel] = taut.Solve();
+
+  if (tautRes == solver::Result::kUNSAT) {
+    printw("\t∈ TAUT\n");
+  } else if (satRes == solver::Result::kSAT) {
+    std::vector<std::string> model;
+    for (const auto &lit : satModel) {
+      if (!sat.IsTemp(lit.V())) {
+        auto id = sat.NameOf(lit.V());
+        if (lit.IsPos()) {
+          model.emplace_back(VariableIDExpr(id).ToString());
+        } else {
+          model.emplace_back(
+              NegExpr(std::make_unique<VariableIDExpr>(id)).ToString());
+        }
+      }
+    }
+    printw("\t∈ SAT\n");
+    printw("\tmodel: %s\n", Join(model, ", ").c_str());
+  } else {
+    printw("\t∈ UNSAT\n");
+  }
 }

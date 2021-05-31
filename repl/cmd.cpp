@@ -13,6 +13,8 @@ DepthCmd::DepthCmd(std::unique_ptr<Expr> expr) : expr_(std::move(expr)) {}
 
 TTCmd::TTCmd(std::unique_ptr<Expr> expr) : expr_(std::move(expr)) {}
 
+CheckCmd::CheckCmd(std::unique_ptr<Expr> expr) : expr_(std::move(expr)) {}
+
 static Result<Cmd> ParseLetCmd(Lookahead &la) {
   std::string id;
   std::unique_ptr<Expr> expr;
@@ -58,6 +60,14 @@ static Result<Cmd> ParseTTCmd(Lookahead &la) {
   return std::make_unique<TTCmd>(std::move(expr));
 }
 
+static Result<Cmd> ParseCheckCmd(Lookahead &la) {
+  std::unique_ptr<Expr> expr;
+  CONSUME_OR_RETURN(Token::Type::kKeywordCheck);
+  PARSE_OR_RETURN(expr, Expr::Parse(la));
+  CONSUME_OR_RETURN(Token::Type::kEOL);
+  return std::make_unique<CheckCmd>(std::move(expr));
+}
+
 Result<Cmd> Cmd::Parse(Lookahead &la) {
   switch (la->type) {
   case Token::Type::kKeywordLet:
@@ -68,6 +78,8 @@ Result<Cmd> Cmd::Parse(Lookahead &la) {
     return ParseDepthCmd(la);
   case Token::Type::kKeywordTT:
     return ParseTTCmd(la);
+  case Token::Type::kKeywordCheck:
+    return ParseCheckCmd(la);
   default:
     return ParseNopCmd(la);
   }

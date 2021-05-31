@@ -16,6 +16,8 @@ This is a playground for learning about several topics that interests me, includ
 
 * [demos](demo): short programs illustrating the usage of the above.
 
+* [repl](repl): a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) for exploring basic logic computations interactively.
+
 As I study and learn new things, this organization might change and new items will be added. Additional notes on exercises from [[2]](#2) and diagrams can be found in [doc](doc). 
 
 The following sections provide more detail on specific components.
@@ -107,6 +109,26 @@ This example recreates the satisfiable instance `R'` from [[2]](#2), page 4. It 
 SAT: ¬x1, x4, x2, x3
 ```
 
+REPL
+----
+
+The REPL can be executed as follows:
+```bash
+bazel run -c opt //repl
+```
+
+It is useful for interactively exploring basic logic computations. The notation used mostly follows the one in [[6]](#6) and [[7]](#7).
+
+![Demo](doc/img/repl_demo.svg)
+
+Demos
+-----
+
+A couple of demos are provided in [demo](demo):
+
+* [factor](demo/factor.cpp): encodes a factorization problem. Number to factorize is given as a program argument.
+* [sudoku](demo/sudoku.cpp): encodes a sudoku problem. Sudoku to solve is read from stdin.
+
 Development usage
 -----------------
 
@@ -124,14 +146,6 @@ Additionally, a utility application for batch running a specific algorithm again
 bazel run -c opt //benchmark:batch -- D /path/to/instance/dir/
 ```
 It will also verify results and output statistics about solve time.
-
-Demos
------
-
-A couple of demos are provided in [demo](demo):
-
-* [factor](demo/factor.cpp): encodes a factorization problem. Number to factorize is given as a program argument.
-* [sudoku](demo/sudoku.cpp): encodes a sudoku problem. Sudoku to solve is read from stdin.
 
 References
 ----------
@@ -153,3 +167,11 @@ References
 
 <a id="5">[5]</a>
  Tseytin, G. S.: On the complexity of derivation in propositional calculus. In: (ed.)Slisenko, A. O. Studies in Constructive Mathematics and Mathematical Logic. pp. 115–125. Springer (1969)
+
+<a id="6">[6]</a>
+ Krajícek, J.: Proof Complexity. Cambridge University Press (2019)
+
+
+<a id="7">[7]</a>
+ Buss, S.: Handbook of Proof Theory. Elsevier, New York (1998)
+

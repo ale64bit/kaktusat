@@ -7,7 +7,7 @@ namespace encoder {
 
 // u -> t
 // ~u -> ~t
-void Set(Solver &solver, Lit t, Lit u) {
+void Eq(Solver &solver, Lit t, Lit u) {
   solver.AddClause({u, ~t});
   solver.AddClause({~u, t});
 }

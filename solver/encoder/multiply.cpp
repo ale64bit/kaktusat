@@ -42,7 +42,7 @@ void Multiply(Solver &solver, int m, int n) {
       if (bin[k].size() == 1) {
         auto b1 = bin[k].top();
         bin[k].pop();
-        Set(solver, z[k], b1);
+        Eq(solver, z[k], b1);
       } else if (bin[k].size() == 2) {
         auto b1 = bin[k].top();
         bin[k].pop();

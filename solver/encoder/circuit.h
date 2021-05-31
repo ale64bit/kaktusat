@@ -8,13 +8,13 @@ namespace solver {
 namespace encoder {
 
 /*
- * Assignment.
+ * Equivalence.
  *
  *   t = u
  *
  * @see: 7.2.2.2 - p9
  */
-void Set(Solver &, Lit t, Lit u);
+void Eq(Solver &, Lit t, Lit u);
 
 /*
  * AND gate.

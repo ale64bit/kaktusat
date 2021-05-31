@@ -68,3 +68,13 @@ public:
 private:
   std::unique_ptr<Expr> expr_;
 };
+
+class CheckCmd : public Cmd {
+public:
+  CheckCmd(std::unique_ptr<Expr> expr);
+
+  void Eval(Context &) const override;
+
+private:
+  std::unique_ptr<Expr> expr_;
+};

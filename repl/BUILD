@@ -11,6 +11,7 @@ cc_binary(
         "expr_collect_bindings.cpp",
         "expr_copy.cpp",
         "expr_eval.cpp",
+        "expr_tosolver.cpp",
         "expr_tostring.cpp",
         "parsing.h",
         "repl.cpp",
@@ -20,4 +21,8 @@ cc_binary(
         "trie.h",
     ],
     linkopts = ["-lncursesw"],
+    deps = [
+        "//solver/algorithm",
+        "//solver/encoder",
+    ],
 )
