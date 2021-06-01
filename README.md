@@ -127,6 +127,7 @@ Demos
 A couple of demos are provided in [demo](demo):
 
 * [factor](demo/factor.cpp): encodes a factorization problem. Number to factorize is given as a program argument.
+* [life](demo/life.cpp): encodes a bounded model checking ([Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)) problem.
 * [sudoku](demo/sudoku.cpp): encodes a sudoku problem. Sudoku to solve is read from stdin.
 
 Development usage
