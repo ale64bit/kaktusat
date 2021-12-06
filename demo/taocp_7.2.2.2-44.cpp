@@ -1,4 +1,4 @@
-// Solution to 7.2.2.2 - exercise 44, p136
+// Solution to TAOCP 7.2.2.2 - exercise 44, p136
 #include <bitset>
 #include <chrono>
 #include <fstream>

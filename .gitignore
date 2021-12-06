@@ -1,5 +1,9 @@
 NOTES
 /experimental
+/cmake-build-debug
+/cmake-build-release
+/cmake-build-asan
+/cmake-build-msan
 
 # Prerequisites
 *.d

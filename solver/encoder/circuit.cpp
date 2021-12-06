@@ -21,6 +21,23 @@ void And(Solver &solver, Lit t, Lit u, Lit v) {
   solver.AddClause({~u, ~v, t});
 }
 
+void And(Solver &solver, Lit t, const std::vector<Lit> &us) {
+  if (us.size() == 1) {
+    Eq(solver, t, us[0]);
+  } else if (us.size() == 2) {
+    And(solver, t, us[0], us[1]);
+  } else {
+    Lit w = solver.NewTempVar("w");
+    Eq(solver, w, us[0]);
+    for (size_t i = 1; i < us.size() - 1; ++i) {
+      Lit ww = solver.NewTempVar("w");
+      And(solver, ww, w, us[i]);
+      w = ww;
+    }
+    And(solver, t, w, us.back());
+  }
+}
+
 // u -> t
 // v -> t
 // ~u & ~v -> ~t
@@ -28,6 +45,23 @@ void Or(Solver &solver, Lit t, Lit u, Lit v) {
   solver.AddClause({~u, t});
   solver.AddClause({~v, t});
   solver.AddClause({u, v, ~t});
+}
+
+void Or(Solver &solver, Lit t, const std::vector<Lit> &us) {
+  if (us.size() == 1) {
+    Eq(solver, t, us[0]);
+  } else if (us.size() == 2) {
+    Or(solver, t, us[0], us[1]);
+  } else {
+    Lit w = solver.NewTempVar("w");
+    Eq(solver, w, us[0]);
+    for (size_t i = 1; i < us.size() - 1; ++i) {
+      Lit ww = solver.NewTempVar("w");
+      Or(solver, ww, w, us[i]);
+      w = ww;
+    }
+    Or(solver, t, w, us.back());
+  }
 }
 
 void Xor(Solver &solver, Lit t, Lit u, Lit v) {

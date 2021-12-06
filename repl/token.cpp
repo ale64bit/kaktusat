@@ -92,6 +92,8 @@ std::string Token::TypeToDescString(Token::Type type) {
     return "formula identifier";
   case Token::Type::kEOL:
     return "EOL";
+  default:
+    return "???";
   }
 }
 
@@ -145,5 +147,7 @@ std::string Token::ToDescString() const {
     return TypeToDescString(type) + " " + value;
   case Token::Type::kEOL:
     return TypeToDescString(type);
+  default:
+    return "???";
   }
 }

@@ -25,6 +25,8 @@ void Eq(Solver &, Lit t, Lit u);
  */
 void And(Solver &, Lit t, Lit u, Lit v);
 
+void And(Solver &, Lit t, const std::vector<Lit> &us);
+
 /*
  * OR gate.
  *
@@ -33,6 +35,8 @@ void And(Solver &, Lit t, Lit u, Lit v);
  * @see: 7.2.2.2 - p9
  */
 void Or(Solver &, Lit t, Lit u, Lit v);
+
+void Or(Solver &, Lit t, const std::vector<Lit> &us);
 
 /*
  * XOR gate.

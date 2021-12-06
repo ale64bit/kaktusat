@@ -1,5 +1,6 @@
 #include "repl/expr.h"
 
+#include <limits>
 #include <unordered_map>
 
 #include "repl/parsing.h"

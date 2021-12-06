@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "solver/encoder/cardinality.h"
+
 namespace solver {
 namespace encoder {
 
@@ -21,7 +23,7 @@ void Pigeonhole(Solver &solver, int m) {
 
   // Every pigeon has a hole.
   for (int j = 0; j <= m; ++j) {
-    solver.AddClause(x[j]);
+    encoder::AtLeast(solver, x[j], 1);
   }
 
   // At most one pigeon in any whole.

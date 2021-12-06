@@ -39,7 +39,7 @@ void LetCmd::Eval(Context &ctx) const {
   const auto &expr = std::get<std::unique_ptr<Expr>>(res);
   auto bindings = expr->CollectBindings();
   if (!bindings.formulas.empty()) {
-    printw("\terror: expression '%s' contains unbound formulas: %s\n",
+    printw("\terror: expression '%s' contains free formulas: %s\n",
            expr->ToString().c_str(), Join(bindings.formulas, ", ").c_str());
     return;
   }

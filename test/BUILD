@@ -1,3 +1,4 @@
+# TODO: port to cmake
 cc_test(
     name = "solver_test",
     srcs = [
